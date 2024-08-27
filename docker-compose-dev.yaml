@@ -4,23 +4,16 @@ services:
     container_name: server
     image: server:latest
     entrypoint: python3 /main.py
-    environment:
-      - PYTHONUNBUFFERED=1
-      - LOGGING_LEVEL=DEBUG
-    networks:
-      - testing_net
+    environment: {'PYTHONUNBUFFERED': '1', 'LOGGING_LEVEL': 'DEBUG'}
+    networks: ['testing_net']
 
   client1:
     container_name: client1
     image: client:latest
     entrypoint: /client
-    environment:
-      - CLI_ID=1
-      - CLI_LOG_LEVEL=DEBUG
-    networks:
-      - testing_net
-    depends_on:
-      - server
+    environment: {'CLI_LOG_LEVEL': 'DEBUG', 'CLI_ID': '1'}
+    networks: ['testing_net']
+    depends_on: ['server']
 
 networks:
   testing_net:
