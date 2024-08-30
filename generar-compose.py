@@ -9,6 +9,7 @@ SERVER_BASE_CONFIG = {
       "LOGGING_LEVEL": "DEBUG",
     },
     "networks": ["testing_net"],
+    "volumes": ["./server/config.ini:/config/config.ini"]
   }
 CLIENT_BASE_CONFIG = {
     "container_name": "client",
