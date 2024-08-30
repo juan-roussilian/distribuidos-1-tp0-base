@@ -20,6 +20,8 @@ CLIENT_BASE_CONFIG = {
     },
     "networks": ["testing_net"],
     "depends_on": ["server"],
+    "volumes": ["./client/config.yaml:/config/config.yaml"]
+
   }
 def generate_docker_compose(filename, client_amount):
   """

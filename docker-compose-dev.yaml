@@ -15,6 +15,7 @@ services:
     environment: {'CLI_LOG_LEVEL': 'DEBUG', 'CLI_ID': '1'}
     networks: ['testing_net']
     depends_on: ['server']
+    volumes: ['./client/config.yaml:/config/config.yaml']
 
 networks:
   testing_net:
