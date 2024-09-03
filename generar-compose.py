@@ -1,13 +1,11 @@
 import sys
 
+ADD_ENV_VARS=False
+
 SERVER_BASE_CONFIG = {
     "container_name": "server",
     "image": "server:latest",
     "entrypoint": "python3 /main.py",
-    "environment": {
-      "PYTHONUNBUFFERED": "1",
-      "LOGGING_LEVEL": "DEBUG",
-    },
     "networks": ["testing_net"],
     "volumes": ["./server/config.ini:/config/config.ini"]
   }
@@ -15,14 +13,20 @@ CLIENT_BASE_CONFIG = {
     "container_name": "client",
     "image": "client:latest",
     "entrypoint": "/client",
-    "environment": {
-      "CLI_LOG_LEVEL": "DEBUG",
-    },
     "networks": ["testing_net"],
     "depends_on": ["server"],
     "volumes": ["./client/config.yaml:/config/config.yaml"]
 
   }
+
+if ADD_ENV_VARS:
+  SERVER_BASE_CONFIG["environment"] = {
+      "PYTHONUNBUFFERED": "1",
+      "LOGGING_LEVEL": "DEBUG"
+  }
+  CLIENT_BASE_CONFIG["environment"] = {
+      "CLI_LOG_LEVEL": "DEBUG",
+    }
 def generate_docker_compose(filename, client_amount):
   """
   Generates a Docker Compose file with specified filename and client count.
@@ -47,7 +51,8 @@ def generate_docker_compose(filename, client_amount):
 
   for i in range(1, client_amount + 1):
     client_config["container_name"] = f"client{i}"
-    client_config["environment"]["CLI_ID"] = str(i)
+    if ADD_ENV_VARS:
+      client_config["environment"]["CLI_ID"] = str(i)
     content += f"  client{i}:\n"
     content += f"{yaml_format(client_config)}\n"
     client_config["container_name"] = "client"  # Reset client container name
