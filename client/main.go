@@ -91,6 +91,7 @@ func PrintConfig(v *viper.Viper) {
 }
 
 func main() {
+
 	v, err := InitConfig()
 	if err != nil {
 		log.Criticalf("%s", err)

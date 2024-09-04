@@ -5,7 +5,6 @@ from common.server import Server
 import logging
 import os
 
-
 def initialize_config():
     """ Parse env variables or config file to find program config params
 
@@ -32,7 +31,6 @@ def initialize_config():
         raise ValueError("Key could not be parsed. Error: {}. Aborting server".format(e))
 
     return config_params
-
 
 def main():
     config_params = initialize_config()
@@ -63,7 +61,6 @@ def initialize_log(logging_level):
         level=logging_level,
         datefmt='%Y-%m-%d %H:%M:%S',
     )
-
 
 if __name__ == "__main__":
     main()
