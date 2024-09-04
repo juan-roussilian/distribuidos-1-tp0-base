@@ -25,8 +25,8 @@ class Server:
 
     def __exit_gracefully(self):
         def sigterm_handler(sig, frame):
-            #close resources
             self.active_connection.close()
+            logging.info(f'action: close | result: success | resource type: connection | ip: {self.active_connection_addr[0]}')
         return sigterm_handler
     
     def __handle_client_connection(self):
@@ -39,8 +39,8 @@ class Server:
         try:
             # TODO: Modify the receive to avoid short-reads
             msg = self.active_connection.recv(1024).rstrip().decode('utf-8')
-            addr = self.active_connection.getpeername()
-            logging.info(f'action: receive_message | result: success | ip: {addr[0]} | msg: {msg}')
+            self.active_connection_addr = self.active_connection.getpeername()
+            logging.info(f'action: receive_message | result: success | ip: {self.active_connection_addr[0]} | msg: {msg}')
             # TODO: Modify the send to avoid short-writes
             self.active_connection.send("{}\n".format(msg).encode('utf-8'))
         except OSError as e:
