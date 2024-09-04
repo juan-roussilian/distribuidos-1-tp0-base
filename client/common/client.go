@@ -5,6 +5,9 @@ import (
 	"fmt"
 	"net"
 	"time"
+	"os"
+	"os/signal"
+	"syscall"
 
 	"github.com/op/go-logging"
 )
@@ -57,7 +60,17 @@ func (c *Client) StartClientLoop() {
 	for msgID := 1; msgID <= c.config.LoopAmount; msgID++ {
 		// Create the connection the server in every loop iteration. Send an
 		c.createClientSocket()
+		
+		sigc := make(chan os.Signal, 1)
+		signal.Notify(sigc, syscall.SIGTERM)
 
+		go func() {
+			<-sigc
+			c.conn.Close()
+			log.Infof("action: close | result: success | resource type: client socket | client_id: %v",
+			c.config.ID)
+			os.Exit(1)	
+		}()
 		// TODO: Modify the send to avoid short-write
 		fmt.Fprintf(
 			c.conn,
