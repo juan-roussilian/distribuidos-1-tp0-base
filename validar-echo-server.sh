@@ -4,8 +4,9 @@
 # docker compose -f docker-compose-dev.yaml up -d client1
 # ya que es el cliente quien se encarga de comprobar el 
 # funcionamiento del servidor
-
-SERVER_RESPONSE=$(docker exec -i client1 sh -c 'echo -n "test" | nc 172.25.125.2 12345')
+docker compose -f docker-compose-dev.yaml up -d server-checker
+SERVER_RESPONSE=$(docker exec server-checker sh -c "echo -n 'test' | nc -w 1 server 12345")
+docker compose -f docker-compose-dev.yaml stop server-checker
 if [ "$SERVER_RESPONSE" == "test" ]; then
     echo "action: test_echo_server | result: success"
 else
