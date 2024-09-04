@@ -69,7 +69,7 @@ func (c *Client) StartClientLoop() {
 			c.conn.Close()
 			log.Infof("action: close | result: success | resource type: client socket | client_id: %v",
 			c.config.ID)
-			os.Exit(1)	
+			os.Exit(0)	
 		}()
 		// TODO: Modify the send to avoid short-write
 		fmt.Fprintf(
