@@ -7,3 +7,9 @@ log:
   level: "INFO"
 batch:
   maxAmount: 10
+bet:
+  firstName: "Lionel Andres" 
+  lastName: "Messi"
+  document: 33016244
+  birthDate: "1987-06-24"
+  number: 10
