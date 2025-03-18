@@ -38,7 +38,7 @@ def generate_docker_compose(filename, client_amount):
   # Validate inputs
   if not isinstance(filename, str):
     raise ValueError("filename must be a string")
-  if not isinstance(client_amount, int) or client_amount <= 0:
+  if not isinstance(client_amount, int) or client_amount < 0:
     raise ValueError("client_amount must be a positive integer")
 
 
