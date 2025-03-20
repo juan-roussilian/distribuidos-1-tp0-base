@@ -1,6 +1,14 @@
 import sys
 
-ADD_ENV_VARS=False
+ADD_CONFIG_ENV_VARS=False
+
+BET_OPTIONS = {
+  "names" : ["Juan C.","Mark V.","Carlo Antonio","Toshinori","Hans J."], 
+  "surnames" : ["Lopez","Grayson","Piastri","Yagi","Muller"],
+  "identification_numbers" : ["30904465","23000000","23000001","23000002","23000003"],
+  "birth_date" : ["1999-03-17","1967-12-12","2000-01-01","2014-04-02","2005-03-17"],
+  "numbers" : ["4","8","15","16","23","42"]
+}
 
 SERVER_BASE_CONFIG = {
     "container_name": "server",
@@ -15,18 +23,16 @@ CLIENT_BASE_CONFIG = {
     "entrypoint": "/client",
     "networks": ["testing_net"],
     "depends_on": ["server"],
-    "volumes": ["./client/config.yaml:/config/config.yaml"]
+    "volumes": ["./client/config.yaml:/config/config.yaml"],
+    "environment": {}
+}
 
-  }
-
-if ADD_ENV_VARS:
+if ADD_CONFIG_ENV_VARS:
   SERVER_BASE_CONFIG["environment"] = {
       "PYTHONUNBUFFERED": "1",
       "LOGGING_LEVEL": "DEBUG"
   }
-  CLIENT_BASE_CONFIG["environment"] = {
-      "CLI_LOG_LEVEL": "DEBUG",
-    }
+  CLIENT_BASE_CONFIG["environment"]["CLI_LOG_LEVEL"] = "DEBUG"
 def generate_docker_compose(filename, client_amount):
   """
   Generates a Docker Compose file with specified filename and client count.
@@ -51,8 +57,16 @@ def generate_docker_compose(filename, client_amount):
 
   for i in range(1, client_amount + 1):
     client_config["container_name"] = f"client{i}"
-    if ADD_ENV_VARS:
+    
+    if ADD_CONFIG_ENV_VARS:
       client_config["environment"]["CLI_ID"] = str(i)
+
+    client_config["environment"]["NOMBRE"] = BET_OPTIONS["names"][(i-1)%5]
+    client_config["environment"]["APELLIDO"] = BET_OPTIONS["surnames"][(i-1)%5]
+    client_config["environment"]["DOCUMENTO"] = BET_OPTIONS["identification_numbers"][(i-1)%5]
+    client_config["environment"]["NACIMIENTO"] = BET_OPTIONS["birth_date"][(i-1)%5]
+    client_config["environment"]["NUMERO"] = BET_OPTIONS["numbers"][(i-1)%5]
+
     content += f"  client{i}:\n"
     content += f"{yaml_format(client_config)}\n"
     client_config["container_name"] = "client"  # Reset client container name
