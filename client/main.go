@@ -42,7 +42,7 @@ func InitConfig() (*viper.Viper, error) {
 	v.BindEnv("bet", "document")
 	v.BindEnv("bet", "birthDate")
 	v.BindEnv("bet", "number")
-	
+
 	// Try to read configuration from config file. If config file
 	// does not exists then ReadInConfig will fail but configuration
 	// can be loaded from the environment variables so we shouldn't
@@ -95,6 +95,7 @@ func PrintConfig(v *viper.Viper) {
 	)
 }
 
+
 func PrintBet(bet common.Bet){
 	log.Infof("action: bet | result: success | name: %s | last name: %s | document: %v | birthdate: %s | number: %v",
 	bet.FirstName,
@@ -103,7 +104,14 @@ func PrintBet(bet common.Bet){
 	bet.BirthDate,
 	bet.Number,
 )
+}		
+
+func PrintEnv(){
+	for _, env := range os.Environ() {
+		log.Infof("action: config | envars: %s", env)
+	}
 }
+
 func main() {
 
 	v, err := InitConfig()
@@ -132,7 +140,18 @@ func main() {
 		Number:		uint16(v.GetInt("bet.number")),
 
 	}
+
+	envBet := common.Bet{
+		FirstName:	v.GetString("env.NOMBRE"),
+		LastName: 	v.GetString("env.APELLIDO"),
+		Document:   uint32(v.GetInt("env.DOCUMENTO")),
+		BirthDate:  v.GetString("env.NACIMIENTO"),
+		Number:		uint16(v.GetInt("env.NUMERO")),
+
+	}
 	PrintBet(bet)
+	PrintBet(envBet)
+	PrintEnv()
 	client := common.NewClient(clientConfig)
 	client.StartClientLoop()
 }
