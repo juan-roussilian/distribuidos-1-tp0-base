@@ -4,10 +4,10 @@ import (
 	"bufio"
 	"fmt"
 	"net"
-	"time"
 	"os"
 	"os/signal"
 	"syscall"
+	"time"
 
 	"github.com/op/go-logging"
 )
@@ -55,7 +55,7 @@ func (c *Client) createClientSocket() error {
 
 // StartClientLoop Send messages to the client until some time threshold is met
 func (c *Client) StartClientLoop() {
-	
+
 	c.createClientSocket()
 	sigc := make(chan os.Signal, 1)
 	signal.Notify(sigc, syscall.SIGTERM)
@@ -64,10 +64,10 @@ func (c *Client) StartClientLoop() {
 		<-sigc
 		c.conn.Close()
 		log.Infof("action: close | result: success | resource type: client socket | client_id: %v",
-		c.config.ID)
-		os.Exit(0)	
+			c.config.ID)
+		os.Exit(0)
 	}()
-	
+	msgID := 0
 	// TODO: Modify the send to avoid short-write
 	fmt.Fprintf(
 		c.conn,
@@ -75,7 +75,7 @@ func (c *Client) StartClientLoop() {
 		c.config.ID,
 		msgID,
 	)
-	msg, err := bufio.NewReader(c.conn).ReadString('\n')
+	_, err := bufio.NewReader(c.conn).ReadString('\n')
 	c.conn.Close()
 
 	if err != nil {
