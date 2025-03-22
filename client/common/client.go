@@ -1,8 +1,6 @@
 package common
 
 import (
-	"bufio"
-	"fmt"
 	"net"
 	"os"
 	"os/signal"
@@ -13,6 +11,8 @@ import (
 )
 
 var log = logging.MustGetLogger("log")
+
+const AckOpcode = 0
 
 // ClientConfig Configuration used by the client
 type ClientConfig struct {
@@ -53,13 +53,39 @@ func (c *Client) createClientSocket() error {
 	return nil
 }
 
+// WriteAll ensures that all bytes are written to the connection
+func WriteAll(conn net.Conn, data []byte) error {
+	totalSent := 0
+	for totalSent < len(data) {
+		sent, err := conn.Write(data[totalSent:])
+		if err != nil {
+			return err
+		}
+		totalSent += sent
+	}
+	return nil
+}
+
+// ReadAll ensures that exactly 'size' bytes are read from the connection
+func ReadAll(conn net.Conn, size int) ([]byte, error) {
+	buffer := make([]byte, size)
+	totalRead := 0
+	for totalRead < size {
+		n, err := conn.Read(buffer[totalRead:])
+		if err != nil {
+			return nil, err
+		}
+		totalRead += n
+	}
+	return buffer, nil
+}
+
 // StartClientLoop Send messages to the client until some time threshold is met
-func (c *Client) StartClientLoop() {
+func (c *Client) StartClientLoop(bet Bet) {
 
 	c.createClientSocket()
 	sigc := make(chan os.Signal, 1)
 	signal.Notify(sigc, syscall.SIGTERM)
-
 	go func() {
 		<-sigc
 		c.conn.Close()
@@ -67,24 +93,36 @@ func (c *Client) StartClientLoop() {
 			c.config.ID)
 		os.Exit(0)
 	}()
-	msgID := 0
-	// TODO: Modify the send to avoid short-write
-	fmt.Fprintf(
-		c.conn,
-		"[CLIENT %v] Message N°%v\n",
-		c.config.ID,
-		msgID,
-	)
-	_, err := bufio.NewReader(c.conn).ReadString('\n')
-	c.conn.Close()
 
-	if err != nil {
-		log.Errorf("action: receive_message | result: fail | client_id: %v | error: %v",
+	serializer := new(Serializer)
+	betBytes := serializer.SerializeBet(bet)
+
+	if err := WriteAll(c.conn, betBytes); err != nil {
+		log.Errorf("action: send_message | result: fail | client_id: %v | error: %v",
 			c.config.ID,
 			err,
 		)
+		c.conn.Close()
 		return
 	}
+
+	buffer, err := ReadAll(c.conn, 2)
+	if err != nil {
+		log.Errorf("action: read_message | result: fail | client_id: %v | error: %v",
+			c.config.ID,
+			err,
+		)
+		c.conn.Close()
+		return
+	}
+	responseOpcode := serializer.deserializeOpcode(buffer)
+	if responseOpcode == AckOpcode {
+		log.Infof("action: apuesta_enviada | result: success | dni: %s | numero: %v", bet.Document, bet.Number)
+	}
+
+	c.conn.Close()
+
+	log.Infof("action: received_data | result: success | client_id: %v | data: %v", c.config.ID, buffer)
 
 	log.Infof("action: loop_finished | result: success | client_id: %v", c.config.ID)
 }

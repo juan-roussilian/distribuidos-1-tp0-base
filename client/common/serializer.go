@@ -22,6 +22,10 @@ func (s *Serializer) int32ToBytes(n uint32) []byte {
 	return b
 }
 
+func (s *Serializer) deserializeOpcode(data []byte) uint16 {
+	return binary.BigEndian.Uint16(data)
+}
+
 // Serialize a Bet object into a byte slice
 func (s *Serializer) SerializeBet(bet Bet) []byte {
 
