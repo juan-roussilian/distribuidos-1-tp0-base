@@ -3,6 +3,7 @@ package main
 import (
 	"fmt"
 	"os"
+	"strconv"
 	"strings"
 	"time"
 
@@ -95,18 +96,17 @@ func PrintConfig(v *viper.Viper) {
 	)
 }
 
-
-func PrintBet(bet common.Bet){
+func PrintBet(bet common.Bet) {
 	log.Infof("action: bet | result: success | name: %s | last name: %s | document: %v | birthdate: %s | number: %v",
-	bet.FirstName,
-	bet.LastName,
-	bet.Document,
-	bet.BirthDate,
-	bet.Number,
-)
-}		
+		bet.FirstName,
+		bet.LastName,
+		bet.Document,
+		bet.BirthDate,
+		bet.Number,
+	)
+}
 
-func PrintEnv(){
+func PrintEnv() {
 	for _, env := range os.Environ() {
 		log.Infof("action: config | envars: %s", env)
 	}
@@ -132,26 +132,21 @@ func main() {
 		LoopAmount:    v.GetInt("loop.amount"),
 		LoopPeriod:    v.GetDuration("loop.period"),
 	}
+
+	documentEnv, _ := strconv.Atoi(os.Getenv("DOCUMENTO"))
+	document := uint32(documentEnv)
+
+	betNumberEnv, _ := strconv.Atoi(os.Getenv("NUMERO"))
+	betNumber := uint16(betNumberEnv)
+
 	bet := common.Bet{
-		FirstName:	v.GetString("bet.firstName"),
-		LastName: 	v.GetString("bet.lastName"),
-		Document:   uint32(v.GetInt("bet.document")),
-		BirthDate:  v.GetString("bet.birthDate"),
-		Number:		uint16(v.GetInt("bet.number")),
-
-	}
-
-	envBet := common.Bet{
-		FirstName:	v.GetString("env.NOMBRE"),
-		LastName: 	v.GetString("env.APELLIDO"),
-		Document:   uint32(v.GetInt("env.DOCUMENTO")),
-		BirthDate:  v.GetString("env.NACIMIENTO"),
-		Number:		uint16(v.GetInt("env.NUMERO")),
-
+		FirstName: os.Getenv("NOMBRE"),
+		LastName:  os.Getenv("APELLIDO"),
+		Document:  document,
+		BirthDate: os.Getenv("NACIMIENTO"),
+		Number:    betNumber,
 	}
 	PrintBet(bet)
-	PrintBet(envBet)
-	PrintEnv()
 	client := common.NewClient(clientConfig)
-	client.StartClientLoop()
+	client.StartClientLoop(bet)
 }
