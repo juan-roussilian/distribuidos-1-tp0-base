@@ -2,6 +2,9 @@ import sys
 
 ADD_CONFIG_ENV_VARS=False
 
+# Set to false to run automated tests
+ADD_BET_ENV_VARS=False
+
 BET_OPTIONS = {
   "names" : ["Juan C.","Mark V.","Carlo Antonio","Toshinori","Hans J."], 
   "surnames" : ["Lopez","Grayson","Piastri","Yagi","Muller"],
@@ -60,11 +63,12 @@ def generate_docker_compose(filename, client_amount):
     
     client_config["environment"]["CLI_ID"] = str(i)
 
-    client_config["environment"]["NOMBRE"] = BET_OPTIONS["names"][(i-1)%5]
-    client_config["environment"]["APELLIDO"] = BET_OPTIONS["surnames"][(i-1)%5]
-    client_config["environment"]["DOCUMENTO"] = BET_OPTIONS["identification_numbers"][(i-1)%5]
-    client_config["environment"]["NACIMIENTO"] = BET_OPTIONS["birth_date"][(i-1)%5]
-    client_config["environment"]["NUMERO"] = BET_OPTIONS["numbers"][(i-1)%5]
+    if ADD_BET_ENV_VARS:
+      client_config["environment"]["NOMBRE"] = BET_OPTIONS["names"][(i-1)%5]
+      client_config["environment"]["APELLIDO"] = BET_OPTIONS["surnames"][(i-1)%5]
+      client_config["environment"]["DOCUMENTO"] = BET_OPTIONS["identification_numbers"][(i-1)%5]
+      client_config["environment"]["NACIMIENTO"] = BET_OPTIONS["birth_date"][(i-1)%5]
+      client_config["environment"]["NUMERO"] = BET_OPTIONS["numbers"][(i-1)%5]
 
     content += f"  client{i}:\n"
     content += f"{yaml_format(client_config)}\n"
