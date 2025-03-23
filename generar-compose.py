@@ -2,8 +2,7 @@ import sys
 
 ADD_CONFIG_ENV_VARS=False
 
-# Set to false to run automated tests
-ADD_BET_ENV_VARS=False
+ADD_BET_ENV_VARS=True
 
 BET_OPTIONS = {
   "names" : ["Juan C.","Mark V.","Carlo Antonio","Toshinori","Hans J."], 
