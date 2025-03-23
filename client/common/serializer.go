@@ -27,7 +27,7 @@ func (s *Serializer) deserializeOpcode(data []byte) uint16 {
 }
 
 // Serialize a Bet object into a byte slice
-func (s *Serializer) SerializeBet(bet Bet) []byte {
+func (s *Serializer) SerializeBet(bet Bet, clientID uint16) []byte {
 
 	// Convert integers values  to bytes
 	opcodeBytes := s.int16ToBytes(SendBetOpcode)
@@ -46,6 +46,7 @@ func (s *Serializer) SerializeBet(bet Bet) []byte {
 
 	// Combine all byte slices into one
 	data := append(opcodeBytes, documentBytes...)
+	data = append(data, s.int16ToBytes(clientID)...)
 	data = append(data, betNumberBytes...)
 	data = append(data, birthDateBytes...)
 	data = append(data, firstNameLenBytes...)

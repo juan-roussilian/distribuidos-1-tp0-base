@@ -4,6 +4,7 @@ import (
 	"net"
 	"os"
 	"os/signal"
+	"strconv"
 	"syscall"
 	"time"
 
@@ -95,7 +96,9 @@ func (c *Client) StartClientLoop(bet Bet) {
 	}()
 
 	serializer := new(Serializer)
-	betBytes := serializer.SerializeBet(bet)
+	configID, _ := strconv.Atoi(c.config.ID)
+
+	betBytes := serializer.SerializeBet(bet, uint16(configID))
 
 	if err := WriteAll(c.conn, betBytes); err != nil {
 		log.Errorf("action: send_message | result: fail | client_id: %v | error: %v",
