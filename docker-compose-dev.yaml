@@ -15,6 +15,12 @@ services:
     depends_on: ['server']
     volumes: ['./client/config.yaml:/config/config.yaml']
 
+  server-checker:
+    container_name: server-checker
+    image: busybox
+    networks: ['testing_net']
+    command: tail -f /dev/null
+
 networks:
   testing_net:
     ipam:
