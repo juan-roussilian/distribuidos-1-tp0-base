@@ -8,14 +8,12 @@ const SendBetOpcode = 1
 
 type Serializer struct{}
 
-// Convert an int16 to a 2-byte slice
 func (s *Serializer) int16ToBytes(n uint16) []byte {
 	b := make([]byte, 2)
 	binary.BigEndian.PutUint16(b, uint16(n))
 	return b
 }
 
-// Convert an int32 to a 4-byte slice
 func (s *Serializer) int32ToBytes(n uint32) []byte {
 	b := make([]byte, 4)
 	binary.BigEndian.PutUint32(b, uint32(n))
@@ -26,7 +24,6 @@ func (s *Serializer) deserializeOpcode(data []byte) uint16 {
 	return binary.BigEndian.Uint16(data)
 }
 
-// Serialize a Bet object into a byte slice
 func (s *Serializer) SerializeBet(bet Bet, clientID uint16) []byte {
 
 	// Convert integers values  to bytes
