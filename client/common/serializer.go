@@ -4,7 +4,7 @@ import (
 	"encoding/binary"
 )
 
-const SendBetOpcode = 0
+const SendBetOpcode = 1
 
 type Serializer struct{}
 

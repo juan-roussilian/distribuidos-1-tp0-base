@@ -64,6 +64,7 @@ func WriteAll(conn net.Conn, data []byte) error {
 		}
 		totalSent += sent
 	}
+	log.Infof("action: send_bytes | result: success | bytes_sent: %v", totalSent)
 	return nil
 }
 
@@ -99,6 +100,16 @@ func (c *Client) StartClientLoop(bet Bet) {
 	configID, _ := strconv.Atoi(c.config.ID)
 
 	betBytes := serializer.SerializeBet(bet, uint16(configID))
+
+	// Ensure betBytes has a length of 150 bytes by padding it with 0s in case its shorter
+	if len(betBytes) > 150 {
+		log.Errorf("action: serialize_bet | result: fail | client_id: %v | error: bet fields are too long", c.config.ID)
+		c.conn.Close()
+		return
+	} else if len(betBytes) < 150 {
+		padding := make([]byte, 150-len(betBytes))
+		betBytes = append(betBytes, padding...)
+	}
 
 	if err := WriteAll(c.conn, betBytes); err != nil {
 		log.Errorf("action: send_message | result: fail | client_id: %v | error: %v",
