@@ -57,30 +57,15 @@ def generate_docker_compose(filename, client_amount):
 
   for i in range(1, client_amount + 1):
     client_config["container_name"] = f"client{i}"
-<<<<<<< Updated upstream
     
-    if ADD_CONFIG_ENV_VARS:
-      client_config["environment"]["CLI_ID"] = str(i)
-
-=======
-<<<<<<< Updated upstream
-    if ADD_ENV_VARS:
-      client_config["environment"]["CLI_ID"] = str(i)
-=======
-    
-     
     client_config["environment"]["CLI_ID"] = str(i)
->>>>>>> Stashed changes
+
     client_config["environment"]["NOMBRE"] = BET_OPTIONS["names"][(i-1)%5]
     client_config["environment"]["APELLIDO"] = BET_OPTIONS["surnames"][(i-1)%5]
     client_config["environment"]["DOCUMENTO"] = BET_OPTIONS["identification_numbers"][(i-1)%5]
     client_config["environment"]["NACIMIENTO"] = BET_OPTIONS["birth_date"][(i-1)%5]
     client_config["environment"]["NUMERO"] = BET_OPTIONS["numbers"][(i-1)%5]
 
-<<<<<<< Updated upstream
-=======
->>>>>>> Stashed changes
->>>>>>> Stashed changes
     content += f"  client{i}:\n"
     content += f"{yaml_format(client_config)}\n"
     client_config["container_name"] = "client"  # Reset client container name
