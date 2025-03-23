@@ -33,7 +33,7 @@ func (p *ProtocolHandler) SendBetAndPrintLogs(connection net.Conn, bet Bet, clie
 	}
 
 	if responseOpcode == AckOpcode {
-		log.Infof("action: send_bet | result: success | dni: %v | numero: %v", bet.Document, bet.Number)
+		log.Infof("action: apuesta_enviada | result: success | dni: %v | numero: %v", bet.Document, bet.Number)
 	}
 
 	log.Infof("action: loop_finished | result: success | client_id: %v", clientID)
