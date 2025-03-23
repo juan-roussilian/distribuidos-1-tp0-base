@@ -34,7 +34,7 @@ class Server:
             logging.info(f'action: close | result: success | resource type: server socket')
             if self.active_connection is not None:
                 self.active_connection.close()
-                logging.info(f'action: close | result: success | resource type: client socket | ip: {self.active_connection_addr[0]}')
+                logging.info(f'action: close | result: success | resource type: client socket | ip: {self.self.active_connection.getpeername()[0]}')
             quit()
         return sigterm_handler
 
