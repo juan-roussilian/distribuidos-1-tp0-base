@@ -131,7 +131,7 @@ func (c *Client) StartClientLoop(bet Bet) {
 	}
 	responseOpcode := serializer.deserializeOpcode(buffer)
 	if responseOpcode == AckOpcode {
-		log.Infof("action: apuesta_enviada | result: success | dni: %s | numero: %v", bet.Document, bet.Number)
+		log.Infof("action: apuesta_enviada | result: success | dni: %v | numero: %v", bet.Document, bet.Number)
 	}
 
 	c.conn.Close()
