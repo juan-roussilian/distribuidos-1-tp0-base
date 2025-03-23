@@ -16,6 +16,12 @@ services:
     volumes: ['./client/config.yaml:/config/config.yaml']
     environment: {'CLI_ID': '1', 'CLI_FIRST_NAME': 'Juan C.', 'CLI_LAST_NAME': 'Lopez', 'CLI_DOCUMENT': '30904465', 'CLI_BIRTH_DATE': '1999-03-17', 'CLI_NUMBER': '4'}
 
+  server-checker:
+    container_name: server-checker
+    image: busybox
+    networks: ['testing_net']
+    command: tail -f /dev/null
+
 networks:
   testing_net:
     ipam:

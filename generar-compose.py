@@ -30,6 +30,14 @@ CLIENT_BASE_CONFIG = {
     "environment": {}
 }
 
+
+SERVER_CHECKER_CONFIG = {
+    "container_name": "server-checker",
+    "image": "busybox",
+    "networks": ['testing_net'],
+    "command": "tail -f /dev/null" 
+  }
+
 if ADD_CONFIG_ENV_VARS:
   SERVER_BASE_CONFIG["environment"] = {
       "PYTHONUNBUFFERED": "1",
@@ -73,6 +81,9 @@ def generate_docker_compose(filename, client_amount):
     content += f"  client{i}:\n"
     content += f"{yaml_format(client_config)}\n"
     client_config["container_name"] = "client"  # Reset client container name
+  
+  content += f"  server-checker:\n"
+  content += f"{yaml_format(SERVER_CHECKER_CONFIG)}\n"
 
   content += "networks:\n"
   content += "  testing_net:\n"

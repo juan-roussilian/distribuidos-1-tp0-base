@@ -12,6 +12,7 @@ class Server:
         self._server_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
         self._server_socket.bind(('', port))
         self._server_socket.listen(listen_backlog)
+        self.active_connection = None
 
     def run(self):
         """
@@ -31,8 +32,9 @@ class Server:
         def sigterm_handler(sig, frame):
             self._server_socket.close()
             logging.info(f'action: close | result: success | resource type: server socket')
-            self.active_connection.close()
-            logging.info(f'action: close | result: success | resource type: client socket | ip: {self.active_connection_addr[0]}')
+            if self.active_connection is not None:
+                self.active_connection.close()
+                logging.info(f'action: close | result: success | resource type: client socket | ip: {self.active_connection_addr[0]}')
             quit()
         return sigterm_handler
 
