@@ -3,12 +3,13 @@ import sys
 ADD_CONFIG_ENV_VARS=False
 
 ADD_BET_ENV_VARS=True
+ENV_PREFIX = "CLI_"
 
 BET_OPTIONS = {
-  "names" : ["Juan C.","Mark V.","Carlo Antonio","Toshinori","Hans J."], 
-  "surnames" : ["Lopez","Grayson","Piastri","Yagi","Muller"],
-  "identification_numbers" : ["30904465","23000000","23000001","23000002","23000003"],
-  "birth_date" : ["1999-03-17","1967-12-12","2000-01-01","2014-04-02","2005-03-17"],
+  "first_names" : ["Juan C.","Mark V.","Carlo Antonio","Toshinori","Hans J."], 
+  "last_names" : ["Lopez","Grayson","Piastri","Yagi","Muller"],
+  "documents" : ["30904465","23000000","23000001","23000002","23000003"],
+  "birth_dates" : ["1999-03-17","1967-12-12","2000-01-01","2014-04-02","2005-03-17"],
   "numbers" : ["4","8","15","16","23","42"]
 }
 
@@ -63,11 +64,11 @@ def generate_docker_compose(filename, client_amount):
     client_config["environment"]["CLI_ID"] = str(i)
 
     if ADD_BET_ENV_VARS:
-      client_config["environment"]["NOMBRE"] = BET_OPTIONS["names"][(i-1)%5]
-      client_config["environment"]["APELLIDO"] = BET_OPTIONS["surnames"][(i-1)%5]
-      client_config["environment"]["DOCUMENTO"] = BET_OPTIONS["identification_numbers"][(i-1)%5]
-      client_config["environment"]["NACIMIENTO"] = BET_OPTIONS["birth_date"][(i-1)%5]
-      client_config["environment"]["NUMERO"] = BET_OPTIONS["numbers"][(i-1)%5]
+      client_config["environment"][f"{ENV_PREFIX}FIRST_NAME"] = BET_OPTIONS["first_names"][(i-1)%5]
+      client_config["environment"][f"{ENV_PREFIX}LAST_NAME"] = BET_OPTIONS["last_names"][(i-1)%5]
+      client_config["environment"][f"{ENV_PREFIX}DOCUMENT"] = BET_OPTIONS["documents"][(i-1)%5]
+      client_config["environment"][f"{ENV_PREFIX}BIRTH_DATE"] = BET_OPTIONS["birth_dates"][(i-1)%5]
+      client_config["environment"][f"{ENV_PREFIX}NUMBER"] = BET_OPTIONS["numbers"][(i-1)%5]
 
     content += f"  client{i}:\n"
     content += f"{yaml_format(client_config)}\n"
