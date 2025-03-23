@@ -34,6 +34,11 @@ func InitConfig() (*viper.Viper, error) {
 
 	// Add env variables supported
 	v.BindEnv("id")
+	v.BindEnv("first_name")
+	v.BindEnv("last_name")
+	v.BindEnv("document")
+	v.BindEnv("birth_date")
+	v.BindEnv("number")
 	v.BindEnv("server", "address")
 	v.BindEnv("loop", "period")
 	v.BindEnv("loop", "amount")
@@ -133,17 +138,17 @@ func main() {
 		LoopPeriod:    v.GetDuration("loop.period"),
 	}
 
-	documentEnv, _ := strconv.Atoi(os.Getenv("DOCUMENTO"))
+	documentEnv, _ := strconv.Atoi(v.GetString("document"))
 	document := uint32(documentEnv)
 
-	betNumberEnv, _ := strconv.Atoi(os.Getenv("NUMERO"))
+	betNumberEnv, _ := strconv.Atoi(v.GetString("number"))
 	betNumber := uint16(betNumberEnv)
 
 	bet := common.Bet{
-		FirstName: os.Getenv("NOMBRE"),
-		LastName:  os.Getenv("APELLIDO"),
+		FirstName: v.GetString("first_name"),
+		LastName:  v.GetString("last_name"),
 		Document:  document,
-		BirthDate: os.Getenv("NACIMIENTO"),
+		BirthDate: v.GetString("birth_name"),
 		Number:    betNumber,
 	}
 	PrintBet(bet)
