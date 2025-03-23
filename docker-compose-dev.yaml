@@ -14,33 +14,6 @@ services:
     networks: ['testing_net']
     depends_on: ['server']
     volumes: ['./client/config.yaml:/config/config.yaml']
-<<<<<<< Updated upstream
-    environment: {'NOMBRE': 'Juan C.', 'APELLIDO': 'Lopez', 'DOCUMENTO': '30904465', 'NACIMIENTO': '1999-03-17', 'NUMERO': '4'}
-=======
-<<<<<<< Updated upstream
->>>>>>> Stashed changes
-
-  client2:
-    container_name: client2
-    image: client:latest
-    entrypoint: /client
-    networks: ['testing_net']
-    depends_on: ['server']
-    volumes: ['./client/config.yaml:/config/config.yaml']
-    environment: {'NOMBRE': 'Mark V.', 'APELLIDO': 'Grayson', 'DOCUMENTO': '23000000', 'NACIMIENTO': '1967-12-12', 'NUMERO': '8'}
-
-  client3:
-    container_name: client3
-    image: client:latest
-    entrypoint: /client
-    networks: ['testing_net']
-<<<<<<< Updated upstream
-    depends_on: ['server']
-    volumes: ['./client/config.yaml:/config/config.yaml']
-    environment: {'NOMBRE': 'Carlo Antonio', 'APELLIDO': 'Piastri', 'DOCUMENTO': '23000001', 'NACIMIENTO': '2000-01-01', 'NUMERO': '15'}
-=======
-    command: tail -f /dev/null
-=======
     environment: {'CLI_ID': '1', 'NOMBRE': 'Juan C.', 'APELLIDO': 'Lopez', 'DOCUMENTO': '30904465', 'NACIMIENTO': '1999-03-17', 'NUMERO': '4'}
 
   client2:
@@ -60,7 +33,6 @@ services:
     depends_on: ['server']
     volumes: ['./client/config.yaml:/config/config.yaml']
     environment: {'CLI_ID': '3', 'NOMBRE': 'Carlo Antonio', 'APELLIDO': 'Piastri', 'DOCUMENTO': '23000001', 'NACIMIENTO': '2000-01-01', 'NUMERO': '15'}
->>>>>>> Stashed changes
 
   client4:
     container_name: client4
@@ -69,12 +41,7 @@ services:
     networks: ['testing_net']
     depends_on: ['server']
     volumes: ['./client/config.yaml:/config/config.yaml']
-<<<<<<< Updated upstream
-    environment: {'NOMBRE': 'Toshinori', 'APELLIDO': 'Yagi', 'DOCUMENTO': '23000002', 'NACIMIENTO': '2014-04-02', 'NUMERO': '16'}
-=======
     environment: {'CLI_ID': '4', 'NOMBRE': 'Toshinori', 'APELLIDO': 'Yagi', 'DOCUMENTO': '23000002', 'NACIMIENTO': '2014-04-02', 'NUMERO': '16'}
->>>>>>> Stashed changes
->>>>>>> Stashed changes
 
 networks:
   testing_net:
