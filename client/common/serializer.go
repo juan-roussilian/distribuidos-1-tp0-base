@@ -45,8 +45,8 @@ func (s *Serializer) SerializeBet(bet Bet, clientID uint16) []byte {
 	birthDateBytes := []byte(bet.BirthDate)
 
 	// Combine all byte slices into one
-	data := append(opcodeBytes, documentBytes...)
-	data = append(data, s.int16ToBytes(clientID)...)
+	data := append(opcodeBytes, s.int16ToBytes(clientID)...)
+	data = append(data, documentBytes...)
 	data = append(data, betNumberBytes...)
 	data = append(data, birthDateBytes...)
 	data = append(data, firstNameLenBytes...)
