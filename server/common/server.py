@@ -47,7 +47,7 @@ class Server:
         """
         try:
             protocol_handler = ProtocolHandler(self.active_connection)
-            protocol_handler.receive_and_store_bet()
+            protocol_handler.receive_and_store_bets()
         except OSError as e:
             logging.error(f"action: receive_message | result: fail | error: {e}")
         except ConnectionError as e:

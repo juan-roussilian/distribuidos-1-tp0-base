@@ -2,22 +2,35 @@ from .utils import Bet
 from .serializer import Serializer
 
 ACK_MESSAGE_OPCODE = 0
-BET_MESSAGE_SIZE = 150
+BET_PAYLOAD_SIZE = 144
 OPCODE_SIZE = 2
+CLIENT_ID_SIZE = 2
+BET_AMOUNT_SIZE = 2
 
 class Messenger:
 
     def __init__(self):
         self.serializer = Serializer()
 
-    def read_message_opcode(self, connection) -> int:
+    def read_message_opcode_and_client_id(self, connection) -> tuple:
         # Use __read_all to avoid short-reads
         opcode_bytes = self.__read_all(connection, OPCODE_SIZE)
-        return self.serializer.deserialize_opcode(opcode_bytes)
+        opcode = self.serializer.deserialize_int_to_bytes(opcode_bytes)
+        client_id_bytes = self.__read_all(connection, CLIENT_ID_SIZE)
+        client_id = self.serializer.deserialize_int_to_bytes(client_id_bytes)
+        return opcode, client_id
     
-    def read_bet_message(self, connection) -> Bet:
-        bet_bytes = self.__read_all(connection, BET_MESSAGE_SIZE - OPCODE_SIZE)
-        return self.serializer.deserialize_bet(bet_bytes)
+    def read_bet_amount(self, connection) -> int:
+        amount_bytes = self.__read_all(connection, OPCODE_SIZE)
+        return self.serializer.deserialize_int_to_bytes(amount_bytes)
+    
+    def read_bet_batch_message(self, connection, bet_amount) -> list[Bet]:
+        bets = []
+        for i in range (bet_amount):
+            bet_bytes = self.__read_all(connection, BET_PAYLOAD_SIZE)
+            bet = self.serializer.deserialize_bet(bet_bytes)
+            bets.append(bet)
+        return bets
     
     def send_ack_message(self, connection):
         self.__write_all(connection, self.serializer.serialize_opcode(ACK_MESSAGE_OPCODE))

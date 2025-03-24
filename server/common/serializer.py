@@ -6,8 +6,8 @@ class Serializer:
     def serialize_opcode(self, opcode:int) -> bytes:
         return self.__serialize_int_to_bytes(opcode, 2)
     
-    def deserialize_opcode(self, opcodeBytes:bytes) -> int:
-        return int.from_bytes(opcodeBytes, byteorder='big')
+    def deserialize_int_to_bytes(self, bytes:bytes) -> int:
+        return int.from_bytes(bytes, byteorder='big')
     
     def deserialize_bet(self, betBytes:bytes) -> Bet:
         agency_number = int.from_bytes(betBytes[:2], byteorder='big')
