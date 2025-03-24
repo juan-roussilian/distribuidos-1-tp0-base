@@ -81,6 +81,6 @@ func (c *Client) StartClientLoop(bets []Bet, maxAmount int) {
 		// Send the current batch of bets
 		p.SendBetsAndPrintLogs(currentBets, batchNumber)
 	}
-
+	p.SendEndOfBets()
 	c.conn.Close()
 }

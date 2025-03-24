@@ -6,6 +6,7 @@ import (
 )
 
 const SendBetBatchOpcode = 1
+const EndOfBatchOpcode = 3
 const BetPayloadSize = 144
 
 type Serializer struct{}
@@ -25,13 +26,17 @@ func (s *Serializer) int32ToBytes(n uint32) []byte {
 func (s *Serializer) deserializeOpcode(data []byte) uint16 {
 	return binary.BigEndian.Uint16(data)
 }
+func (s *Serializer) SerializeOpcodeAndClientID(opcode uint16, clientID uint16) []byte {
+	opcodeBytes := s.int16ToBytes(opcode)
+	clientIDBytes := s.int16ToBytes(clientID)
+	return append(opcodeBytes, clientIDBytes...)
+}
 
 func (s *Serializer) SerializeBets(bets []Bet, clientID uint16) ([]byte, error) {
 
 	// Convert "header" values to bytes and append at first 6 message bytes
 	// (2 bytes for opcode, 2 bytes for clientID, 2 bytes for number of bets)
-	opcodeBytes := s.int16ToBytes(SendBetBatchOpcode)
-	data := append(opcodeBytes, s.int16ToBytes(clientID)...)
+	data := s.SerializeOpcodeAndClientID(SendBetBatchOpcode, clientID)
 	data = append(data, s.int16ToBytes(uint16(len(bets)))...)
 
 	for _, bet := range bets {

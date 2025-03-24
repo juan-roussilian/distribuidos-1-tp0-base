@@ -47,3 +47,7 @@ func (p *ProtocolHandler) SendBetsAndPrintLogs(bets []Bet, batchNumber int) {
 
 	log.Infof("action: loop_finished | result: success | client_id: %v", p.clientID)
 }
+
+func (p *ProtocolHandler) SendEndOfBets() {
+	p.messenger.SendEndOfBets(p.connection, p.clientID)
+}

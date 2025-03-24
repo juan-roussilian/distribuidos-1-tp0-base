@@ -46,6 +46,14 @@ func (m *Messenger) ReceiveResult(connection net.Conn, clientID uint16) (int16, 
 	return int16(responseOpcode), nil
 }
 
+func (m *Messenger) SendEndOfBets(connection net.Conn, clientID uint16) error {
+	endOfBetsBytes := m.serializer.SerializeOpcodeAndClientID(EndOfBatchOpcode, clientID)
+	if send_err := writeAll(connection, endOfBetsBytes); send_err != nil {
+		return send_err
+	}
+	return nil
+}
+
 // WriteAll ensures that all bytes are written to the connection
 func writeAll(conn net.Conn, data []byte) error {
 	totalSent := 0

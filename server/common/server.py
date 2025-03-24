@@ -45,13 +45,12 @@ class Server:
         If a problem arises in the communication with the client, the
         client socket will also be closed
         """
-        continue_loop = True
         try:
-            while continue_loop:
-                protocol_handler = ProtocolHandler(self.active_connection)
-                continue_loop = protocol_handler.receive_and_store_bets()
+            protocol_handler = ProtocolHandler(self.active_connection)
+            protocol_handler.receive_and_store_bets()
+
         except OSError as e:
-            logging.error(f"action: receive_message | result: fail | error: {e}")
+           logging.error(f"action: receive_message | result: fail | error: {e}")
         except ConnectionError as e:
             logging.error(f"action: receive_message | result: fail | error: {e}")
         finally:
