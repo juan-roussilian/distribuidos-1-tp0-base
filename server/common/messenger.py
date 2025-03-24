@@ -2,6 +2,8 @@ from .utils import Bet
 from .serializer import Serializer
 
 ACK_MESSAGE_OPCODE = 0
+BATCH_ERROR_MESSAGE_OPCODE = 2
+
 BET_PAYLOAD_SIZE = 144
 OPCODE_SIZE = 2
 CLIENT_ID_SIZE = 2
@@ -21,19 +23,22 @@ class Messenger:
         return opcode, client_id
     
     def read_bet_amount(self, connection) -> int:
-        amount_bytes = self.__read_all(connection, OPCODE_SIZE)
+        amount_bytes = self.__read_all(connection, BET_AMOUNT_SIZE)
         return self.serializer.deserialize_int_to_bytes(amount_bytes)
     
-    def read_bet_batch_message(self, connection, bet_amount) -> list[Bet]:
+    def read_bet_batch_message(self, connection, bet_amount, agency_number) -> list[Bet]:
         bets = []
         for i in range (bet_amount):
             bet_bytes = self.__read_all(connection, BET_PAYLOAD_SIZE)
-            bet = self.serializer.deserialize_bet(bet_bytes)
+            bet = self.serializer.deserialize_bet(bet_bytes, agency_number)
             bets.append(bet)
         return bets
     
     def send_ack_message(self, connection):
         self.__write_all(connection, self.serializer.serialize_opcode(ACK_MESSAGE_OPCODE))
+
+    def send_error_message(self, connection):
+        self.__write_all(connection, self.serializer.serialize_opcode(BATCH_ERROR_MESSAGE_OPCODE))
 
     def __read_all(self, connection, size):
         # Ensures that exactly 'size' bytes are read from the connection
