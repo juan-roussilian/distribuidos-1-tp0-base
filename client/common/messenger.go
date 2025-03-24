@@ -1,6 +1,7 @@
 package common
 
 import (
+	"errors"
 	"net"
 )
 
@@ -22,9 +23,8 @@ func (m *Messenger) SendBets(connection net.Conn, bets []Bet, clientID uint16) e
 
 	betsBytes := m.serializer.SerializeBets(bets, clientID)
 
-	if len(betsBytes) < MaxBatchMessageSize {
-		padding := make([]byte, MaxBatchMessageSize-len(betsBytes))
-		betsBytes = append(betsBytes, padding...)
+	if len(betsBytes) > MaxBatchMessageSize {
+		return errors.New("batch size is too large and cannot exceed 8000 bytes")
 	}
 
 	if err := writeAll(connection, betsBytes); err != nil {
