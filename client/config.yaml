@@ -6,4 +6,4 @@ loop:
 log:
   level: "INFO"
 batch:
-  maxAmount: 54  # Cantidad maxima de apuestas para que el batch no supere 8kb
+  maxAmount: 55  # Cantidad maxima de apuestas para que el batch no supere 8kb
