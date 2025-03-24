@@ -2,9 +2,11 @@ package common
 
 import (
 	"encoding/binary"
+	"errors"
 )
 
 const SendBetBatchOpcode = 1
+const BetPayloadSize = 144
 
 type Serializer struct{}
 
@@ -24,7 +26,7 @@ func (s *Serializer) deserializeOpcode(data []byte) uint16 {
 	return binary.BigEndian.Uint16(data)
 }
 
-func (s *Serializer) SerializeBets(bets []Bet, clientID uint16) []byte {
+func (s *Serializer) SerializeBets(bets []Bet, clientID uint16) ([]byte, error) {
 
 	// Convert "header" values to bytes and append at first 6 message bytes
 	// (2 bytes for opcode, 2 bytes for clientID, 2 bytes for number of bets)
@@ -47,15 +49,22 @@ func (s *Serializer) SerializeBets(bets []Bet, clientID uint16) []byte {
 		// Assume BirthDate is always a 10 byte string
 		birthDateBytes := []byte(bet.BirthDate)
 
-		// Combine all byte slices into one
-		data = append(data, documentBytes...)
-		data = append(data, betNumberBytes...)
-		data = append(data, birthDateBytes...)
-		data = append(data, firstNameLenBytes...)
-		data = append(data, firstNameBytes...)
-		data = append(data, lastNameLenBytes...)
-		data = append(data, lastNameBytes...)
+		// Combine all byte slices into one and add padding if necesary
+		bet_bytes := append(documentBytes, betNumberBytes...)
+		bet_bytes = append(bet_bytes, birthDateBytes...)
+		bet_bytes = append(bet_bytes, firstNameLenBytes...)
+		bet_bytes = append(bet_bytes, firstNameBytes...)
+		bet_bytes = append(bet_bytes, lastNameLenBytes...)
+		bet_bytes = append(bet_bytes, lastNameBytes...)
+
+		if len(bet_bytes) < BetPayloadSize {
+			padding := make([]byte, BetPayloadSize-len(bet_bytes))
+			bet_bytes = append(bet_bytes, padding...)
+		} else if len(bet_bytes) > BetPayloadSize {
+			return nil, errors.New("bet fields size is too large")
+		}
+		data = append(data, bet_bytes...)
 	}
 
-	return data
+	return data, nil
 }

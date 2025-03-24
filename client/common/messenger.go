@@ -21,14 +21,17 @@ func NewMessenger() *Messenger {
 // SendBet sends a bet to the server
 func (m *Messenger) SendBets(connection net.Conn, bets []Bet, clientID uint16) error {
 
-	betsBytes := m.serializer.SerializeBets(bets, clientID)
+	betsBytes, serializer_err := m.serializer.SerializeBets(bets, clientID)
 
+	if serializer_err != nil {
+		return serializer_err
+	}
 	if len(betsBytes) > MaxBatchMessageSize {
 		return errors.New("batch size is too large and cannot exceed 8000 bytes")
 	}
 
-	if err := writeAll(connection, betsBytes); err != nil {
-		return err
+	if send_err := writeAll(connection, betsBytes); send_err != nil {
+		return send_err
 	}
 	return nil
 }
