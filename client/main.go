@@ -3,7 +3,6 @@ package main
 import (
 	"fmt"
 	"os"
-	"strconv"
 	"strings"
 	"time"
 
@@ -43,6 +42,7 @@ func InitConfig() (*viper.Viper, error) {
 	v.BindEnv("loop", "period")
 	v.BindEnv("loop", "amount")
 	v.BindEnv("log", "level")
+	v.BindEnv("batch", "maxAmount")
 
 	// Try to read configuration from config file. If config file
 	// does not exists then ReadInConfig will fail but configuration
@@ -133,20 +133,10 @@ func main() {
 		LoopPeriod:    v.GetDuration("loop.period"),
 	}
 
-	documentEnv, _ := strconv.Atoi(v.GetString("document"))
-	document := uint32(documentEnv)
-
-	betNumberEnv, _ := strconv.Atoi(v.GetString("number"))
-	betNumber := uint16(betNumberEnv)
-
-	bet := common.Bet{
-		FirstName: v.GetString("first_name"),
-		LastName:  v.GetString("last_name"),
-		Document:  document,
-		BirthDate: v.GetString("birth_date"),
-		Number:    betNumber,
+	bets, err := common.ParseBetsFromCSV("./bets.csv")
+	if err != nil {
+		log.Criticalf("%s", err)
 	}
-	PrintBet(bet)
 	client := common.NewClient(clientConfig)
-	client.StartClientLoop(bet)
+	client.StartClientLoop(bets, v.GetInt("batch.maxAmount"))
 }

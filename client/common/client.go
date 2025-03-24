@@ -13,8 +13,6 @@ import (
 
 var log = logging.MustGetLogger("log")
 
-const AckOpcode = 0
-
 // ClientConfig Configuration used by the client
 type ClientConfig struct {
 	ID            string
@@ -55,7 +53,7 @@ func (c *Client) createClientSocket() error {
 }
 
 // StartClientLoop Send messages to the client until some time threshold is met
-func (c *Client) StartClientLoop(bet Bet) {
+func (c *Client) StartClientLoop(bets []Bet, maxAmount int) {
 
 	c.createClientSocket()
 	sigc := make(chan os.Signal, 1)
@@ -70,9 +68,19 @@ func (c *Client) StartClientLoop(bet Bet) {
 	}()
 
 	configID, _ := strconv.Atoi(c.config.ID)
-	p := NewProtocolHandler()
-	p.SendBetAndPrintLogs(c.conn, bet, uint16(configID))
+	p := NewProtocolHandler(c.conn, uint16(configID))
+
+	for i := 0; i < len(bets); i += maxAmount {
+
+		end := i + maxAmount
+		if end > len(bets) {
+			end = len(bets)
+		}
+		currentBets := bets[i:end]
+		batchNumber := i/maxAmount + 1
+		// Send the current batch of bets
+		p.SendBetsAndPrintLogs(currentBets, batchNumber)
+	}
 
 	c.conn.Close()
-
 }

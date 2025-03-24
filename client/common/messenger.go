@@ -1,9 +1,10 @@
 package common
 
 import (
-	"errors"
 	"net"
 )
+
+const MaxBatchMessageSize = 8000
 
 type Messenger struct {
 	serializer Serializer
@@ -17,23 +18,21 @@ func NewMessenger() *Messenger {
 }
 
 // SendBet sends a bet to the server
-func (m *Messenger) SendBet(connection net.Conn, bet Bet, clientID uint16) error {
+func (m *Messenger) SendBets(connection net.Conn, bets []Bet, clientID uint16) error {
 
-	betBytes := m.serializer.SerializeBet(bet, clientID)
+	betsBytes := m.serializer.SerializeBets(bets, clientID)
 
-	// Ensure betBytes has a length of 150 bytes by padding it with 0s in case its shorter
-	if len(betBytes) > 150 {
-		return errors.New("bet fields are too long")
-	} else if len(betBytes) < 150 {
-		padding := make([]byte, 150-len(betBytes))
-		betBytes = append(betBytes, padding...)
+	if len(betsBytes) < MaxBatchMessageSize {
+		padding := make([]byte, MaxBatchMessageSize-len(betsBytes))
+		betsBytes = append(betsBytes, padding...)
 	}
 
-	if err := writeAll(connection, betBytes); err != nil {
+	if err := writeAll(connection, betsBytes); err != nil {
 		return err
 	}
 	return nil
 }
+
 func (m *Messenger) ReceiveResult(connection net.Conn, clientID uint16) (int16, error) {
 	buffer, err := readAll(connection, 2)
 

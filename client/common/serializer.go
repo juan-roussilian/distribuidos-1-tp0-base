@@ -4,7 +4,7 @@ import (
 	"encoding/binary"
 )
 
-const SendBetOpcode = 1
+const SendBetBatchOpcode = 1
 
 type Serializer struct{}
 
@@ -24,32 +24,38 @@ func (s *Serializer) deserializeOpcode(data []byte) uint16 {
 	return binary.BigEndian.Uint16(data)
 }
 
-func (s *Serializer) SerializeBet(bet Bet, clientID uint16) []byte {
+func (s *Serializer) SerializeBets(bets []Bet, clientID uint16) []byte {
 
-	// Convert integers values  to bytes
-	opcodeBytes := s.int16ToBytes(SendBetOpcode)
-	betNumberBytes := s.int16ToBytes(bet.Number)
-	documentBytes := s.int32ToBytes(bet.Document)
-
-	// Convert dynamic-length strings to bytes and calculate its length
-	firstNameBytes := []byte(bet.FirstName)
-	firstNameLenBytes := s.int16ToBytes(uint16(len(firstNameBytes)))
-
-	lastNameBytes := []byte(bet.LastName)
-	lastNameLenBytes := s.int16ToBytes(uint16(len(lastNameBytes)))
-
-	// Assume BirthDate is always a 10 byte string
-	birthDateBytes := []byte(bet.BirthDate)
-
-	// Combine all byte slices into one
+	// Convert "header" values to bytes and append at first 6 message bytes
+	// (2 bytes for opcode, 2 bytes for clientID, 2 bytes for number of bets)
+	opcodeBytes := s.int16ToBytes(SendBetBatchOpcode)
 	data := append(opcodeBytes, s.int16ToBytes(clientID)...)
-	data = append(data, documentBytes...)
-	data = append(data, betNumberBytes...)
-	data = append(data, birthDateBytes...)
-	data = append(data, firstNameLenBytes...)
-	data = append(data, firstNameBytes...)
-	data = append(data, lastNameLenBytes...)
-	data = append(data, lastNameBytes...)
+	data = append(data, s.int16ToBytes(uint16(len(bets)))...)
+
+	for _, bet := range bets {
+
+		betNumberBytes := s.int16ToBytes(bet.Number)
+		documentBytes := s.int32ToBytes(bet.Document)
+
+		// Convert dynamic-length strings to bytes and calculate its length
+		firstNameBytes := []byte(bet.FirstName)
+		firstNameLenBytes := s.int16ToBytes(uint16(len(firstNameBytes)))
+
+		lastNameBytes := []byte(bet.LastName)
+		lastNameLenBytes := s.int16ToBytes(uint16(len(lastNameBytes)))
+
+		// Assume BirthDate is always a 10 byte string
+		birthDateBytes := []byte(bet.BirthDate)
+
+		// Combine all byte slices into one
+		data = append(data, documentBytes...)
+		data = append(data, betNumberBytes...)
+		data = append(data, birthDateBytes...)
+		data = append(data, firstNameLenBytes...)
+		data = append(data, firstNameBytes...)
+		data = append(data, lastNameLenBytes...)
+		data = append(data, lastNameBytes...)
+	}
 
 	return data
 }
