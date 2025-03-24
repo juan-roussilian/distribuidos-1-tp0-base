@@ -20,6 +20,7 @@ SERVER_BASE_CONFIG = {
     "networks": ["testing_net"],
     "volumes": ["./server/config.ini:/config/config.ini"]
   }
+
 CLIENT_BASE_CONFIG = {
     "container_name": "client",
     "image": "client:latest",
@@ -59,8 +60,8 @@ def generate_docker_compose(filename, client_amount):
     raise ValueError("client_amount must be a positive integer")
 
 
-  client_config = CLIENT_BASE_CONFIG
   # Create the Docker Compose file content
+  client_config = CLIENT_BASE_CONFIG
   content = "name: tp0\n"
   content += "services:\n"
   content += f"  server:\n"
@@ -70,7 +71,8 @@ def generate_docker_compose(filename, client_amount):
     client_config["container_name"] = f"client{i}"
     
     client_config["environment"]["CLI_ID"] = str(i)
-
+    volume_list = [CLIENT_BASE_CONFIG["volumes"][0], f"./.data/agency-{i}.csv:/bets.csv"]
+    client_config["volumes"] = volume_list
     if ADD_BET_ENV_VARS:
       client_config["environment"][f"{ENV_PREFIX}FIRST_NAME"] = BET_OPTIONS["first_names"][(i-1)%5]
       client_config["environment"][f"{ENV_PREFIX}LAST_NAME"] = BET_OPTIONS["last_names"][(i-1)%5]
