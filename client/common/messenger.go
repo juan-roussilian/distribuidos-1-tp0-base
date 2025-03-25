@@ -56,15 +56,20 @@ func (m *Messenger) AskForWinners(connection net.Conn, clientID uint16) error {
 	askWinnersBytes := m.serializer.SerializeOpcodeAndClientID(AskWinnersOpcode, clientID)
 	if send_err := writeAll(connection, askWinnersBytes); send_err != nil {
 		return send_err
+
 	}
 	return nil
 }
 
 func (m *Messenger) ReceiveWinners(connection net.Conn) ([]uint16, error) {
+
+	readAll(connection, 2)
 	numWinnersBytes, read_err := readAll(connection, 2)
 	if read_err != nil {
 		return nil, read_err
+
 	}
+
 	numWinners := m.serializer.deserializeUInt16(numWinnersBytes)
 
 	winners := make([]uint16, numWinners)

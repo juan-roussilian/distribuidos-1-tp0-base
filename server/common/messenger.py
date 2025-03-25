@@ -45,13 +45,13 @@ class Messenger:
     def send_error_message(self, connection):
         self.__write_all(connection, self.serializer.serialize_opcode(BATCH_ERROR_MESSAGE_OPCODE))
 
-    def send_winners_message(self, connection, winners: Bet):
+    def send_winners_message(self, connection, winners: int):
         
         opcode_bytes = self.serializer.serialize_opcode(WINNERS_MESSAGE_OPCODE)
         len_bytes = self.serializer.serialize_int_to_bytes(len(winners), 2)
         winner_bytes = opcode_bytes + len_bytes
         for winner in winners:
-            winner_bytes = winner_bytes + self.__write_all(connection, self.serializer.serialize_int_to_bytes(winner, 2))
+            winner_bytes = winner_bytes + self.serializer.serialize_int_to_bytes(winner, 2)
         self.__write_all(connection, winner_bytes)
 
     def __read_all(self, connection, size):

@@ -53,6 +53,5 @@ class ProtocolHandler:
     
     def send_winners(self, winners):
         self.messenger.send_winners_message(self.connection, winners)
-        logging.info(f'action: winners_sent | result: success | winners: {winners}')
         
 

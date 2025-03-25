@@ -1,7 +1,6 @@
 import signal
 import socket
 import logging
-
 from .utils import has_won, load_bets
 from .protocol_handler import ProtocolHandler
 
@@ -39,11 +38,9 @@ class Server:
         for bet in bets:
             if has_won(bet):
                 winners.append(bet)
-    
-        for client_id, connection in self._finished_clients:
+        for client_id, c_connection in self._finished_clients:
             client_winners = [winner.agency for winner in winners if winner.agency == client_id]
-            self.__end_client_connection(connection, client_winners)
-
+            self.__end_client_connection(c_connection, client_winners)
     def __exit_gracefully(self):
         def sigterm_handler(sig, frame):
             self._server_socket.close()
@@ -63,7 +60,7 @@ class Server:
         """
         try:
             protocol_handler = ProtocolHandler(connection)
-            protocol_handler.receive_and_store_bets()
+            return protocol_handler.receive_and_store_bets()
 
         except OSError as e:
            logging.error(f"action: receive_message | result: fail | error: {e}")
@@ -73,7 +70,7 @@ class Server:
     def __end_client_connection(self, connection, client_winners):
         ProtocolHandler(connection).send_winners(client_winners)
         logging.info(f"action: send_winners | result: success | winners: {client_winners}")
-        connection.close()
+        connection.close()        
     def __accept_new_connection(self):
         """
         Accept new connections
