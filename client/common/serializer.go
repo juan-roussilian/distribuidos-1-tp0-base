@@ -5,8 +5,6 @@ import (
 	"errors"
 )
 
-const SendBetBatchOpcode = 1
-const EndOfBatchOpcode = 3
 const BetPayloadSize = 144
 
 type Serializer struct{}
@@ -23,7 +21,7 @@ func (s *Serializer) int32ToBytes(n uint32) []byte {
 	return b
 }
 
-func (s *Serializer) deserializeOpcode(data []byte) uint16 {
+func (s *Serializer) deserializeUInt16(data []byte) uint16 {
 	return binary.BigEndian.Uint16(data)
 }
 func (s *Serializer) SerializeOpcodeAndClientID(opcode uint16, clientID uint16) []byte {

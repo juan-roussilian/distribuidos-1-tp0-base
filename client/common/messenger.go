@@ -42,7 +42,7 @@ func (m *Messenger) ReceiveResult(connection net.Conn, clientID uint16) (int16, 
 	if err != nil {
 		return -1, err
 	}
-	responseOpcode := m.serializer.deserializeOpcode(buffer)
+	responseOpcode := m.serializer.deserializeUInt16(buffer)
 	return int16(responseOpcode), nil
 }
 
@@ -52,6 +52,34 @@ func (m *Messenger) SendEndOfBets(connection net.Conn, clientID uint16) error {
 		return send_err
 	}
 	return nil
+}
+
+func (m *Messenger) AskForWinners(connection net.Conn, clientID uint16) error {
+	askWinnersBytes := m.serializer.SerializeOpcodeAndClientID(AskWinnersOpcode, clientID)
+	if send_err := writeAll(connection, askWinnersBytes); send_err != nil {
+		return send_err
+	}
+	return nil
+}
+
+func (m *Messenger) ReceiveWinners(connection net.Conn) []uint16 {
+	numWinnersBytes, read_err := readAll(connection, 2)
+	if read_err != nil {
+		return nil
+	}
+
+	numWinners := m.serializer.deserializeUInt16(numWinnersBytes)
+
+	winners := make([]uint16, numWinners)
+	for i := uint16(0); i < numWinners; i++ {
+		winnerNumberBytes, read_err := readAll(connection, 2)
+		if read_err != nil {
+			return nil
+		}
+
+		winners[i] = m.serializer.deserializeUInt16(winnerNumberBytes)
+	}
+	return winners
 }
 
 // WriteAll ensures that all bytes are written to the connection
