@@ -31,7 +31,7 @@ func (p *ProtocolHandler) RunProtocol(bets []Bet, maxAmount int) {
 	if err != nil {
 		log.Errorf("action: consulta_ganadores | result: fail | error: %v", err.Error())
 	} else {
-		log.Infof("action: consulta_ganadores | result: success | cant_ganadores: %v | ganadores: %v", len(winners), winners)
+		log.Infof("action: consulta_ganadores | result: success | cant_ganadores: %v", len(winners), winners)
 	}
 	log.Infof("action: loop_finished | result: success | client_id: %v", p.clientID)
 }
