@@ -18,7 +18,8 @@ SERVER_BASE_CONFIG = {
     "image": "server:latest",
     "entrypoint": "python3 /main.py",
     "networks": ["testing_net"],
-    "volumes": ["./server/config.ini:/config/config.ini"]
+    "volumes": ["./server/config.ini:/config/config.ini"],
+    "environment": {}
   }
 
 CLIENT_BASE_CONFIG = {
