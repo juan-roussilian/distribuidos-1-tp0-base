@@ -14,6 +14,7 @@ import (
 var log = logging.MustGetLogger("log")
 
 const MaxBetsPerBatchToNotExceedLimit = 7994 / BetPayloadSize
+const MaxBatchMessageSize = 8000
 
 // ClientConfig Configuration used by the client
 type ClientConfig struct {
@@ -69,7 +70,7 @@ func (c *Client) StartClientLoop(bets []Bet, maxAmount int) {
 		os.Exit(0)
 	}()
 	if maxAmount > MaxBetsPerBatchToNotExceedLimit {
-		log.Infof("action: assign max | error: maxAmount exceeds limit, it will be set to %v", c.config.ID, MaxBetsPerBatchToNotExceedLimit)
+		log.Infof("action: assign_max | message: maxAmount will make batch messages exceed limit of %vb, it will be set to %v", MaxBatchMessageSize, MaxBetsPerBatchToNotExceedLimit)
 		maxAmount = MaxBetsPerBatchToNotExceedLimit
 	}
 	configID, _ := strconv.Atoi(c.config.ID)

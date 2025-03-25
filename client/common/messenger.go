@@ -5,8 +5,6 @@ import (
 	"net"
 )
 
-const MaxBatchMessageSize = 8000
-
 type Messenger struct {
 	serializer Serializer
 }
