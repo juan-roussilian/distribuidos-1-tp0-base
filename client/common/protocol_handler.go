@@ -27,8 +27,12 @@ func (p *ProtocolHandler) RunProtocol(bets []Bet, maxAmount int) {
 	// Flow control for the entire protocol
 	p.SplitAndSendBets(bets, maxAmount)
 	p.SendEndOfBets()
-	winners := p.AskForWinners()
-	log.Infof("action: consulta_ganadores | result: success | cant_ganadores: %v | ganadores: %v", len(winners), winners)
+	winners, err := p.AskForWinners()
+	if err != nil {
+		log.Errorf("action: consulta_ganadores | result: fail | error: %v", err.Error())
+	} else {
+		log.Infof("action: consulta_ganadores | result: success | cant_ganadores: %v | ganadores: %v", len(winners), winners)
+	}
 	log.Infof("action: loop_finished | result: success | client_id: %v", p.clientID)
 }
 
@@ -77,7 +81,14 @@ func (p *ProtocolHandler) SendEndOfBets() {
 	p.messenger.SendEndOfBets(p.connection, p.clientID)
 }
 
-func (p *ProtocolHandler) AskForWinners() []uint16 {
-	p.messenger.AskForWinners(p.connection, p.clientID)
-	return p.messenger.ReceiveWinners(p.connection)
+func (p *ProtocolHandler) AskForWinners() ([]uint16, error) {
+	ask_winners_err := p.messenger.AskForWinners(p.connection, p.clientID)
+	if ask_winners_err != nil {
+		return nil, ask_winners_err
+	}
+	winners, receive_err := p.messenger.ReceiveWinners(p.connection)
+	if receive_err != nil {
+		return nil, receive_err
+	}
+	return winners, nil
 }

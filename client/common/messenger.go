@@ -60,24 +60,23 @@ func (m *Messenger) AskForWinners(connection net.Conn, clientID uint16) error {
 	return nil
 }
 
-func (m *Messenger) ReceiveWinners(connection net.Conn) []uint16 {
+func (m *Messenger) ReceiveWinners(connection net.Conn) ([]uint16, error) {
 	numWinnersBytes, read_err := readAll(connection, 2)
 	if read_err != nil {
-		return nil
+		return nil, read_err
 	}
-
 	numWinners := m.serializer.deserializeUInt16(numWinnersBytes)
 
 	winners := make([]uint16, numWinners)
 	for i := uint16(0); i < numWinners; i++ {
 		winnerNumberBytes, read_err := readAll(connection, 2)
 		if read_err != nil {
-			return nil
+			return nil, read_err
 		}
 
 		winners[i] = m.serializer.deserializeUInt16(winnerNumberBytes)
 	}
-	return winners
+	return winners, nil
 }
 
 // WriteAll ensures that all bytes are written to the connection
