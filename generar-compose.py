@@ -61,7 +61,7 @@ def generate_docker_compose(filename, client_amount):
     }
     CLIENT_BASE_CONFIG["environment"]["CLI_LOG_LEVEL"] = "DEBUG"
 
-  SERVER_BASE_CONFIG["environment"]["CLIENT_AMOUNT"] = str(client_amount)
+  SERVER_BASE_CONFIG["environment"]["CLIENT_AMOUNT"] = client_amount
 
   # Create the Docker Compose file content
   client_config = CLIENT_BASE_CONFIG
