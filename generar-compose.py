@@ -39,12 +39,6 @@ SERVER_CHECKER_CONFIG = {
     "command": "tail -f /dev/null" 
   }
 
-if ADD_CONFIG_ENV_VARS:
-  SERVER_BASE_CONFIG["environment"] = {
-      "PYTHONUNBUFFERED": "1",
-      "LOGGING_LEVEL": "DEBUG"
-  }
-  CLIENT_BASE_CONFIG["environment"]["CLI_LOG_LEVEL"] = "DEBUG"
 def generate_docker_compose(filename, client_amount):
   """
   Generates a Docker Compose file with specified filename and client count.
@@ -59,6 +53,14 @@ def generate_docker_compose(filename, client_amount):
   if not isinstance(client_amount, int) or client_amount < 0:
     raise ValueError("client_amount must be a positive integer")
 
+  if ADD_CONFIG_ENV_VARS:
+    SERVER_BASE_CONFIG["environment"] = {
+        "PYTHONUNBUFFERED": "1",
+        "LOGGING_LEVEL": "DEBUG"
+    }
+    CLIENT_BASE_CONFIG["environment"]["CLI_LOG_LEVEL"] = "DEBUG"
+
+  SERVER_BASE_CONFIG["environment"]["CLIENT_AMOUNT"] = str(client_amount)
 
   # Create the Docker Compose file content
   client_config = CLIENT_BASE_CONFIG

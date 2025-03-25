@@ -4,7 +4,7 @@ from .utils import Bet
 class Serializer:
     
     def serialize_opcode(self, opcode:int) -> bytes:
-        return self.__serialize_int_to_bytes(opcode, 2)
+        return self.serialize_int_to_bytes(opcode, 2)
     
     def deserialize_int_to_bytes(self, bytes:bytes) -> int:
         return int.from_bytes(bytes, byteorder='big')
@@ -27,5 +27,5 @@ class Serializer:
             str(number)
         )
             
-    def __serialize_int_to_bytes(self, number:int, size:int) -> bytes:
+    def serialize_int_to_bytes(self, number:int, size:int) -> bytes:
         return number.to_bytes(size, byteorder='big')

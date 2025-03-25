@@ -3,15 +3,17 @@ from .messenger import (
     ACK_MESSAGE_OPCODE,
     END_OF_BATCH_MESSAGE_OPCODE,
     BET_BATCH_MESSAGE_OPCODE,
+    ASK_WINNERS_MESSAGE_OPCODE,
+    WINNERS_MESSAGE_OPCODE,
     Messenger)
-from .utils import store_bets
-
+from .utils import load_bets, store_bets
 
 MESSAGES = {
     ACK_MESSAGE_OPCODE: "ACK Message",
     BET_BATCH_MESSAGE_OPCODE: "Bet Batch Message",
-    END_OF_BATCH_MESSAGE_OPCODE: "End of Batch Message"
-
+    END_OF_BATCH_MESSAGE_OPCODE: "End of Batch Message",
+    ASK_WINNERS_MESSAGE_OPCODE: "Ask Winners Message",
+    WINNERS_MESSAGE_OPCODE: "Winners Message"
 }
 
 class ProtocolHandler:
@@ -20,7 +22,8 @@ class ProtocolHandler:
         self.messenger = Messenger()
         self.connection = connection
         self.max_batch_size = 0
-    def receive_and_store_bets(self):
+
+    def receive_and_store_bets(self) -> int:
 
         while True:
             opcode,agency_number = self.messenger.read_message_opcode_and_client_id(self.connection)
@@ -45,4 +48,11 @@ class ProtocolHandler:
 
             elif opcode == END_OF_BATCH_MESSAGE_OPCODE:
                 logging.info(f'action: fin_lote | result: success | agencia: {agency_number}')
-                return
+            elif opcode ==  ASK_WINNERS_MESSAGE_OPCODE:
+                return agency_number
+    
+    def send_winners(self, winners):
+        self.messenger.send_winners_message(self.connection, winners)
+        logging.info(f'action: winners_sent | result: success | winners: {winners}')
+        
+
