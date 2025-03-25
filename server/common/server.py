@@ -39,7 +39,7 @@ class Server:
             if has_won(bet):
                 winners.append(bet)
         for client_id, c_connection in self._finished_clients:
-            client_winners = [winner.agency for winner in winners if winner.agency == client_id]
+            client_winners = [winner.number for winner in winners if winner.agency == client_id]
             self.__end_client_connection(c_connection, client_winners)
     def __exit_gracefully(self):
         def sigterm_handler(sig, frame):
