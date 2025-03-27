@@ -57,7 +57,8 @@ class Server:
             for active_connection in self.active_connections:
                 active_connection.close()
                 logging.info(f'action: close | result: success | resource type: client socket | ip: {active_connection.getpeername()[0]}')
-            self._process_manager.shutdown()
+            if self._process_manager is not None:
+                self._process_manager.shutdown()
             quit()
         return sigterm_handler
 
