@@ -72,6 +72,9 @@ func (c *Client) StartClientLoop(bets []Bet, maxAmount int) {
 	if maxAmount > MaxBetsPerBatchToNotExceedLimit {
 		log.Infof("action: assign_max | message: maxAmount will make batch messages exceed limit of %vb, it will be set to %v", MaxBatchMessageSize, MaxBetsPerBatchToNotExceedLimit)
 		maxAmount = MaxBetsPerBatchToNotExceedLimit
+	} else if maxAmount <= 0 {
+		log.Infof("action: assign_max | message: maxAmount not found, or is equal or lower than 0. It will be set to %v", MaxBetsPerBatchToNotExceedLimit)
+		maxAmount = MaxBetsPerBatchToNotExceedLimit
 	}
 	configID, _ := strconv.Atoi(c.config.ID)
 	p := NewProtocolHandler(c.conn, uint16(configID))
