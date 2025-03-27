@@ -78,7 +78,10 @@ func (p *ProtocolHandler) SendBets(bets []Bet, batchNumber int) {
 }
 
 func (p *ProtocolHandler) SendEndOfBets() {
-	p.messenger.SendEndOfBets(p.connection, p.clientID)
+	err := p.messenger.SendEndOfBets(p.connection, p.clientID)
+	if err != nil {
+		log.Infof("action: end_of_bets | result: success | client_id: %v", p.clientID)
+	}
 }
 
 func (p *ProtocolHandler) AskForWinners() ([]uint16, error) {
@@ -86,9 +89,11 @@ func (p *ProtocolHandler) AskForWinners() ([]uint16, error) {
 	if ask_winners_err != nil {
 		return nil, ask_winners_err
 	}
+	log.Infof("action: ask_for_winners | result: success | client_id: %v", p.clientID)
 	winners, receive_err := p.messenger.ReceiveWinners(p.connection)
 	if receive_err != nil {
 		return nil, receive_err
 	}
+	log.Infof("action: receive_winners | result: success | client_id: %v", p.clientID)
 	return winners, nil
 }
