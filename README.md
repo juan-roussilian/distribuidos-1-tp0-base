@@ -13,13 +13,150 @@ Seguido de:
 ```make docker-compose-logs```
 
 Para observar a los clientes y al servidor interactuando
+
 ## Ejercicio 2
+
+Para validar que los sericios esten tomando correctamente la configuracion de los archivos config sin tener que volver a buildear la imagen podemos setear el valor de `LOGGING_LEVEL` en  `server/config.ini` y `log.level` en `client/config.yaml` ambos en `INFO` y ejecutar los siguientes comandos para ver en los logs que ambos se inicializan con el valor de level en INFO
+
+
+```console
+make docker-compose-up
+make docker-compose-logs
+```
+Para levantar ambos. Luego podemos detener el cliente. Actualizar el valor de log a "DEBUG" y ver que cuando lo levantamos se imprime en el log de config, que el level es "DEBUG" y nose tuvo que buildear la imagen dos veces
+
+```console
+docker compose -f docker-compose-dev.yaml stop client1
+docker compose up -f docker-compose-dev.yaml stop client1
+make docker-compose-logs
+```
+
 ## Ejercicio 3
+
+Para comprobar que el script de `validar_echo_server.sh` funciona, podemos validar el caso donde el servidor esta funcionando ejectuando
+
+```console
+docker compose -f docker-compose-dev.yaml up -d server
+./validar_echo_server.sh`
+```
+
+y vamos a ver como se retorna por consola "success" denotando que el servidor respondio correctamente. Para el caso contrario, eliminamos la ejecucion del servidor y corremos nuevamente el validador
+
+
+```console
+docker compose -f docker-compose-dev.yaml stop server
+./validar_echo_server.sh`
+```
+
+y veremos como la respuesta es "fail"
+
 ## Ejercicio 4
-## Ejercicio 5
+
+Aqui queremos comprobar el correcto funcionamiento de la señal de sigterm que se envia cuando realizamos un docker compose down sobre un servicio. Por lo tanto la mejor forma de probarlo es levantando tanto el cliente como el servidor,  y detenerlos rapidamente. Luego revisando los logs veremos que no hubo errores en la ejecucion de ambos
+
+```console
+make docker-compose-up
+docker compose  -f docker-compose-dev.yaml stop server
+docker compose  -f docker-compose-dev.yaml stop client1
+make docker-compose-logs
+```
+
+## Ejercicio 5 
+
+Se pueden modificar las variables de entorno que se le envian a los clientes en el archivo docker-compose-dev.yaml multiples veces y por cada modificacion realizar:
+
+```console
+make docker-compose-up
+make docker-compose-logs
+```
+
+Para ver la interacion de los mensajes de apuestas del cliente con el servidor con los nuevos valores definidos
+
+### Protocolo 
+Se definieron los siguientes mensajes a enviar por el cliente y el servidor en un protocolo binario mixto, en el cual hay parametros fijos, en su mayoría los valores numéricos, y parametros variables que deben a su vez ir acompañados de un numero representando su longitud en bytes. Finalmente el tamaño de paquete de apuesta debe ser fijo ya que no se implementa un parametro de tamaño total de paquete y ademas no se considera que sea necesario porque los campos dinamicos correspondiente al nombre y apellido de quien realizo la apuesta no deberian utilizar mas de los bytes que tienen disponibles. 
+
+
+| Tipo de mensaje  | OP-CODE | Tamaño | Composición del mensaje |
+|------------------|---------|--------|--------------------------|
+| ACK - Éxito     | 0       | 2B     | OPCODE (2B)              |
+| Enviar una apuesta | 1       | 150B   | OPCODE (2B), AGENCIA_ID (2B), DOCUMENTO (4B), NUMERO (2B), NACIMIENTO (10B), TAM_NOMBRE (2B), NOMBRE (DINÁMICO), TAM_APELLIDO (2B), APELLIDO (DINÁMICO), PADDING |
+
+La interaccion se realiza de forma que el cliente envia su apuesta y hasta que no recibe su mensaje de exito se queda bloqueado esperando a leer los bytes de opcode de este mensaje
+
 ## Ejercicio 6
+Se puede modificar la variable de configuracion del cliente max amount y ver como se envian esa cantidad de apuestas del cliente al servidor
+
+```console
+make docker-compose-up
+make docker-compose-logs
+```
+### Protocolo
+ 
+Para este ejercicio se reemplaza el mensaje de una unica apuesta por el mensaje de apuestas en lote. Nuevamente, se mantiene el esquema de parametros mixtos, pero ahora se le agrega que el tamaño maximo del paquete no debe superar los 8000 bytes, por lo tanto se hace uso de la variable de configuracion maxAmount para configurar el tamaño maximo de lote. Si este fuera un valor que hiciera que el paquete de lote superara los 8kb, se sea al valor maximo, que dado el tamaño del payload de las apuestas fijo en 144B, maxAmount es 55.
+
+Tambíen se adelanto la creación el mensaje de fin de apuestas del ejercicio 7 a esta parte del protocolo ya que es util para decidir cuando el cliente debe terminar su ejecución.
+
+
+| Tipo de mensaje        | OP-CODE | Tamaño  | Composición del mensaje |
+|------------------------|---------|--------|--------------------------|
+| ACK - Éxito           | 0       | 2B     | OPCODE (2B)              |
+| Enviar lote apuestas  | 1       | Max 8KB | OPCODE (2B), AGENCIA_ID (2B), CANTIDAD_APUESTAS (2B), APUESTAS (144B x #APUESTAS) |
+| Error múltiples apuestas | 2       | 2B     | OPCODE (2B)              |
+| Fin apuestas        | 3       | 4B      | OPCODE (2B), AGENCIA_ID (2B) |
+
 ## Ejercicio 7
+
+Para validar el correcto funcionamiento de este ejercicio, se pueden modificar los archivos .csv correspondiente a las apuestas de cada cliente y verificar como esto afecta al mensaje final de calculo de ganadores de cada agencia. Como por defecto el ganador siempre sera quien apueste al numero 7574, se pueden agregar o eliminar apuestas con este numero y ver como asciende o desciende la cantidad de ganadores en el ultimo mensaje que recibe cada cliente.
+
+```console
+make docker-compose-up
+```
+
+y luego de que termina la ejecución de los clientes:
+
+```console
+make docker-compose-logs
+```
+
+### Protocolo 
+Se agregan los mensajes de consulta de ganadores y respuesta por parte del servidor. 
+El mensaje de respuesta de ganadores es dinamico ya que no se puede saber de antemano la canitdad de ganadores que puede tener una agencia, sin embargo dado que son numeros representados en 2B se opto por no poner un limite al tamaño del mensaje, ya que en casos extremos sería grande, pero en casos normales no.
+
+|Tipo de mensaje       | OP-CODE | Tamaño   | Composición del mensaje |
+|----------------------|---------|---------|--------------------------|
+| Consulta ganadores  | 4       | 4B      | OPCODE (2B), AGENCIA_ID (2B) |
+| Respuesta ganadores | 5       | Sin limite | OPCODE (2B), CANTIDAD_GANADORES (2B), GANADORES (2B x #GANADORES ) |
+
+
 ## Ejercicio 8
+
+Finalmente para validar el correcto funcionamiento del ejercicio, además de las pruebas manuales del ejercicio 7, se debe prestar atencion al orden de los mensajes en los logs. Al poder procesar de manera concurrente el protocolo de transferencia con cada cliente, con mucha probabilidad se veran  intercalados mensajes de todos los clientes, cuando antes no existia tal intercalado.
+
+
+```console
+make docker-compose-up
+```
+
+y luego de que termina la ejecución de los clientes:
+
+```console
+make docker-compose-logs
+```
+
+### Concurrencia
+
+Se opto por aplicar multiprocessing siguiendo las recomendaciones de la cátedra para evitar los problemas de performance que introduce el GIL en python.
+
+Para ello, se crean un proceso (el proceso principal) para aceptar nuevas conexiones, y un proceso por cada conexion para manejar el protocolo de transferencia de apuestas con el cliente. Estos procesos viven hasta que reciben la consulta del cliente de los ganadores, y es este mensaje el que marca el fin del protocolo. Una vez se "termino" el protocolo para cada cliente, se procesan los ganadores y se crea un nuevo proceso por cada cliente que se encarga de comunicar de manera paralela los ganadores. 
+
+Las secciones criticas donde puedes ocurrir una race condition son:
+- Al momento de almacenar apuestas, y es por eso que se implementa un lock multi proceso que se debe adquirir antes de poder persistir la apuesta
+- Al momento de sumar un proceso a la lista de procesos terminados, la cual es compartida entre procesos. Para solucionar esto se utilizo una lista de la libreria multiprocessing la cual internamente implementa el mecanismo de sincronización entre procesos. Se opto por esta solución en lugar de utilizar otro lock multiproceso ya que resulta técnicamente mas interesante y agrega variedad a los mecanismos de sincronización empleados.
+
+
+# Puntos de mejora
+
+Surgió como posible diseño alternativo el uso de una cola bloqueante y un proceso extra el cual se encargase de almacenar las apuestas, pero dado que antes de seguir efectuando el protocolo el servidor debe verificar que la operacion de persistir haya sido realizada sin errores, esta opcion no agregaría mejoras en la performance paralela de los proceso
 
 # Enunciado | TP0: Docker + Comunicaciones + Concurrencia
 
