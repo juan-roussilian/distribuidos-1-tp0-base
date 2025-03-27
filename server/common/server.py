@@ -24,7 +24,7 @@ class Server:
             self.active_connection = self.__accept_new_connection()
             self.__handle_client_connection()
 
-    def __exit_gracefully(self):
+    def __exit_gracefully(self, sig, frame):
         def sigterm_handler(sig, frame):
             self._server_socket.close()
             logging.info(f'action: close | result: success | resource type: server socket')
