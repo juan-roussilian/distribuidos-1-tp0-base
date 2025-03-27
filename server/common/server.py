@@ -25,14 +25,12 @@ class Server:
             self.__handle_client_connection()
 
     def __exit_gracefully(self, sig, frame):
-        def sigterm_handler(sig, frame):
-            self._server_socket.close()
-            logging.info(f'action: close | result: success | resource type: server socket')
-            if self.active_connection is not None:
-                self.active_connection.close()
-                logging.info(f'action: close | result: success | resource type: client socket | ip: {self.active_connection_addr[0]}')
-            quit()
-        return sigterm_handler
+        self._server_socket.close()
+        logging.info(f'action: close | result: success | resource type: server socket')
+        if self.active_connection is not None:
+            self.active_connection.close()
+            logging.info(f'action: close | result: success | resource type: client socket | ip: {self.active_connection_addr[0]}')
+        quit()
     
     def __handle_client_connection(self):
         """
