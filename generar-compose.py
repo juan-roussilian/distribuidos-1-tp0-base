@@ -1,38 +1,37 @@
 import sys
 
-ADD_ENV_VARS=False
+ADD_CONFIG_ENV_VARS=False
+
+ADD_BET_ENV_VARS=True
+ENV_PREFIX = "CLI_"
+
+BET_OPTIONS = {
+  "first_names" : ["Juan C.","Mark V.","Carlo Antonio","Toshinori","Hans J."], 
+  "last_names" : ["Lopez","Grayson","Piastri","Yagi","Muller"],
+  "documents" : ["30904465","23000000","23000001","23000002","23000003"],
+  "birth_dates" : ["1999-03-17","1967-12-12","2000-01-01","2014-04-02","2005-03-17"],
+  "numbers" : ["4","8","15","16","23","42"]
+}
 
 SERVER_BASE_CONFIG = {
     "container_name": "server",
     "image": "server:latest",
     "entrypoint": "python3 /main.py",
     "networks": ["testing_net"],
-    "volumes": ["./server/config.ini:/config/config.ini"]
+    "volumes": ["./server/config.ini:/config/config.ini"],
+    "environment": {}
   }
+
 CLIENT_BASE_CONFIG = {
     "container_name": "client",
     "image": "client:latest",
     "entrypoint": "/client",
     "networks": ["testing_net"],
     "depends_on": ["server"],
-    "volumes": ["./client/config.yaml:/config/config.yaml"]
-  }
+    "volumes": ["./client/config.yaml:/config/config.yaml"],
+    "environment": {}
+}
 
-SERVER_CHECKER_CONFIG = {
-    "container_name": "server-checker",
-    "image": "busybox",
-    "networks": ['testing_net'],
-    "command": "tail -f /dev/null" 
-  }
-
-if ADD_ENV_VARS:
-  SERVER_BASE_CONFIG["environment"] = {
-      "PYTHONUNBUFFERED": "1",
-      "LOGGING_LEVEL": "DEBUG"
-  }
-  CLIENT_BASE_CONFIG["environment"] = {
-      "CLI_LOG_LEVEL": "DEBUG",
-    }
 def generate_docker_compose(filename, client_amount):
   """
   Generates a Docker Compose file with specified filename and client count.
@@ -47,9 +46,17 @@ def generate_docker_compose(filename, client_amount):
   if not isinstance(client_amount, int) or client_amount < 0:
     raise ValueError("client_amount must be a positive integer")
 
+  if ADD_CONFIG_ENV_VARS:
+    SERVER_BASE_CONFIG["environment"] = {
+        "PYTHONUNBUFFERED": "1",
+        "LOGGING_LEVEL": "DEBUG"
+    }
+    CLIENT_BASE_CONFIG["environment"]["CLI_LOG_LEVEL"] = "DEBUG"
 
-  client_config = CLIENT_BASE_CONFIG
+  SERVER_BASE_CONFIG["environment"]["CLIENT_AMOUNT"] = client_amount
+
   # Create the Docker Compose file content
+  client_config = CLIENT_BASE_CONFIG
   content = "name: tp0\n"
   content += "services:\n"
   content += f"  server:\n"
@@ -57,14 +64,20 @@ def generate_docker_compose(filename, client_amount):
 
   for i in range(1, client_amount + 1):
     client_config["container_name"] = f"client{i}"
-    if ADD_ENV_VARS:
-      client_config["environment"]["CLI_ID"] = str(i)
+    
+    client_config["environment"]["CLI_ID"] = str(i)
+    volume_list = [CLIENT_BASE_CONFIG["volumes"][0], f"./.data/agency-{i}.csv:/bets.csv"]
+    client_config["volumes"] = volume_list
+    if ADD_BET_ENV_VARS:
+      client_config["environment"][f"{ENV_PREFIX}FIRST_NAME"] = BET_OPTIONS["first_names"][(i-1)%5]
+      client_config["environment"][f"{ENV_PREFIX}LAST_NAME"] = BET_OPTIONS["last_names"][(i-1)%5]
+      client_config["environment"][f"{ENV_PREFIX}DOCUMENT"] = BET_OPTIONS["documents"][(i-1)%5]
+      client_config["environment"][f"{ENV_PREFIX}BIRTH_DATE"] = BET_OPTIONS["birth_dates"][(i-1)%5]
+      client_config["environment"][f"{ENV_PREFIX}NUMBER"] = BET_OPTIONS["numbers"][(i-1)%5]
+
     content += f"  client{i}:\n"
     content += f"{yaml_format(client_config)}\n"
     client_config["container_name"] = "client"  # Reset client container name
-  
-  content += f"  server-checker:\n"
-  content += f"{yaml_format(SERVER_CHECKER_CONFIG)}\n"
 
   content += "networks:\n"
   content += "  testing_net:\n"
