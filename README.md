@@ -1,4 +1,27 @@
-# TP0: Docker + Comunicaciones + Concurrencia
+# Ejecución de la solución 
+## Ejercicio 1
+Para validar el correcto funcionamiento del script ejecutar el siguiente comando sobre la raiz del proyecto
+
+```./generar-compose.sh docker-compose-dev.yaml 5 ```
+
+Luego verificar la salida del script y el contenido del archivo `docker-compose-dev.yaml` para validar su correcta creacion con 5 clientes y ejecutar:
+
+```make docker-compose-up```
+
+Seguido de:  
+
+```make docker-compose-logs```
+
+Para observar a los clientes y al servidor interactuando
+## Ejercicio 2
+## Ejercicio 3
+## Ejercicio 4
+## Ejercicio 5
+## Ejercicio 6
+## Ejercicio 7
+## Ejercicio 8
+
+# Enunciado | TP0: Docker + Comunicaciones + Concurrencia
 
 En el presente repositorio se provee un esqueleto básico de cliente/servidor, en donde todas las dependencias del mismo se encuentran encapsuladas en containers. Los alumnos deberán resolver una guía de ejercicios incrementales, teniendo en cuenta las condiciones de entrega descritas al final de este enunciado.
 
