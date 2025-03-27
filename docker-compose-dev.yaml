@@ -6,6 +6,7 @@ services:
     entrypoint: python3 /main.py
     networks: ['testing_net']
     volumes: ['./server/config.ini:/config/config.ini']
+    environment: {'CLIENT_AMOUNT': 2}
 
   client1:
     container_name: client1
@@ -15,6 +16,15 @@ services:
     depends_on: ['server']
     volumes: ['./client/config.yaml:/config/config.yaml', './.data/agency-1.csv:/bets.csv']
     environment: {'CLI_ID': '1', 'CLI_FIRST_NAME': 'Juan C.', 'CLI_LAST_NAME': 'Lopez', 'CLI_DOCUMENT': '30904465', 'CLI_BIRTH_DATE': '1999-03-17', 'CLI_NUMBER': '4'}
+
+  client2:
+    container_name: client2
+    image: client:latest
+    entrypoint: /client
+    networks: ['testing_net']
+    depends_on: ['server']
+    volumes: ['./client/config.yaml:/config/config.yaml', './.data/agency-2.csv:/bets.csv']
+    environment: {'CLI_ID': '2', 'CLI_FIRST_NAME': 'Mark V.', 'CLI_LAST_NAME': 'Grayson', 'CLI_DOCUMENT': '23000000', 'CLI_BIRTH_DATE': '1967-12-12', 'CLI_NUMBER': '8'}
 
   server-checker:
     container_name: server-checker

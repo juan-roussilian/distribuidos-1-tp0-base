@@ -1,3 +1,4 @@
+import multiprocessing
 import signal
 import socket
 import logging
@@ -6,7 +7,6 @@ from .protocol_handler import ProtocolHandler
 
 
 class Server:
-
 
     def __init__(self, port, listen_backlog, client_amount):
         # Initialize server socket
@@ -18,29 +18,40 @@ class Server:
         self.active_connections = []
 
     def run(self):
-        """
-        Dummy Server loop
+        signal.signal(signal.SIGTERM, self.__exit_gracefully)
 
-        Server that accept a new connections and establishes a
-        communication with a client. After client with communucation
-        finishes, servers starts to accept new connections again
-        """
+        manager = multiprocessing.Manager()
+        finished_clients = manager.list()
+        store_lock = multiprocessing.Lock()
 
-        signal.signal(signal.SIGTERM, self.__exit_gracefully())
-        while len(self._finished_clients) < self._client_amount:
+        processes = []
+
+        while len(finished_clients) < self._client_amount:
             connection = self.__accept_new_connection()
-            self.active_connections.append(connection)  
-            client_id = self.__handle_client_connection(connection)
-            self._finished_clients.append((client_id, connection))
-             
+            logging.info(f"just accepted new client {connection}")
+            self.active_connections.append(connection)
+
+            p = multiprocessing.Process(target=self.__handle_client_connection, args=(connection, finished_clients, store_lock))
+            p.start()
+            processes.append(p)
+
+        for p in processes:
+            p.join()
+
         bets = load_bets()
-        winners = []
-        for bet in bets:
-            if has_won(bet):
-                winners.append(bet)
-        for client_id, c_connection in self._finished_clients:
+        winners = [bet for bet in bets if has_won(bet)]
+
+        end_processes = []
+
+        for client_id, c_connection in finished_clients:
             client_winners = [winner.number for winner in winners if winner.agency == client_id]
-            self.__end_client_connection(c_connection, client_winners)
+            p = multiprocessing.Process(target=self.__send_winners_and_end_client_connection, args=(c_connection, client_winners))
+            p.start()
+            end_processes.append(p)
+
+        for p in end_processes:
+            p.join()
+
     def __exit_gracefully(self):
         def sigterm_handler(sig, frame):
             self._server_socket.close()
@@ -51,7 +62,7 @@ class Server:
             quit()
         return sigterm_handler
 
-    def __handle_client_connection(self, connection) -> int:
+    def __handle_client_connection(self, connection, finished_clients, store_lock):
         """
         Read message from a specific client socket and closes the socket
 
@@ -60,17 +71,15 @@ class Server:
         """
         try:
             protocol_handler = ProtocolHandler(connection)
-            return protocol_handler.receive_and_store_bets()
-
+            client_id = protocol_handler.receive_and_store_bets(store_lock)
+            finished_clients.append((client_id, connection))
+            return
+    
         except OSError as e:
            logging.error(f"action: receive_message | result: fail | error: {e}")
         except ConnectionError as e:
             logging.error(f"action: receive_message | result: fail | error: {e}")
-            
-    def __end_client_connection(self, connection, client_winners):
-        ProtocolHandler(connection).send_winners(client_winners)
-        logging.info(f"action: send_winners | result: success | winners: {client_winners}")
-        connection.close()        
+                   
     def __accept_new_connection(self):
         """
         Accept new connections
@@ -84,3 +93,8 @@ class Server:
         c, addr = self._server_socket.accept()
         logging.info(f'action: accept_connections | result: success | ip: {addr[0]}')
         return c
+
+    def __send_winners_and_end_client_connection(self, connection, client_winners):
+        ProtocolHandler(connection).send_winners(client_winners)
+        logging.info(f"action: send_winners | result: success | winners: {client_winners}")
+        connection.close()
