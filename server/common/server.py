@@ -26,7 +26,7 @@ class Server:
         finishes, servers starts to accept new connections again
         """
 
-        signal.signal(signal.SIGTERM, self.__exit_gracefully())
+        signal.signal(signal.SIGTERM, self.__exit_gracefully)
         while len(self._finished_clients) < self._client_amount:
             connection = self.__accept_new_connection()
             self.active_connections.append(connection)  
@@ -41,6 +41,7 @@ class Server:
         for client_id, c_connection in self._finished_clients:
             client_winners = [winner.number for winner in winners if winner.agency == client_id]
             self.__end_client_connection(c_connection, client_winners)
+            
     def __exit_gracefully(self):
         def sigterm_handler(sig, frame):
             self._server_socket.close()
