@@ -5,3 +5,5 @@ loop:
   period: "50ms"
 log:
   level: "INFO"
+batch:
+  maxAmount: 99
