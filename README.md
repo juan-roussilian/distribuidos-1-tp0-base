@@ -36,7 +36,7 @@ make docker-compose-logs
 Para comprobar que el script de `validar_echo_server.sh` funciona, podemos validar el caso donde el servidor esta funcionando ejectuando
 
 ```console
-docker compose -f docker-compose-dev.yaml up -d server
+make docker-compose-up
 ./validar_echo_server.sh`
 ```
 
