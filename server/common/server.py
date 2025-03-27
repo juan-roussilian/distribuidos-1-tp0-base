@@ -15,39 +15,40 @@ class Server:
         self._server_socket.listen(listen_backlog)
         self._client_amount = client_amount
         self.active_connections = []
+        self._process_manager = None
 
     def run(self):
         signal.signal(signal.SIGTERM, self.__exit_gracefully)
+        self._process_manager = multiprocessing.Manager()
+        while True:
+            finished_clients = self._process_manager.list()
+            store_lock = multiprocessing.Lock()
+            processes = []
 
-        finished_clients = multiprocessing.Manager().list()
-        store_lock = multiprocessing.Lock()
+            for _ in range(self._client_amount):
+                connection = self.__accept_new_connection()
+                self.active_connections.append(connection)
 
-        processes = []
+                bet_transfer_process = multiprocessing.Process(target=self.__handle_client_connection, args=(connection, finished_clients, store_lock))
+                bet_transfer_process.start()
+                processes.append(bet_transfer_process)
+            
+            for process in processes:
+                process.join(timeout=10)
 
-        for _ in range(self._client_amount):
-            connection = self.__accept_new_connection()
-            self.active_connections.append(connection)
+            bets = load_bets()
+            winners = [bet for bet in bets if has_won(bet)]
+            logging.info(f'action: process_winners | result: success | total_winners: {len(winners)}')
+            end_processes = []
 
-            bet_transfer_process = multiprocessing.Process(target=self.__handle_client_connection, args=(connection, finished_clients, store_lock))
-            bet_transfer_process.start()
-            processes.append(bet_transfer_process)
-        
-        for process in processes:
-            process.join(timeout=10)
+            for client_id, c_connection in finished_clients:
+                client_winners = [winner.number for winner in winners if winner.agency == client_id]
+                send_winners_process = multiprocessing.Process(target=self.__send_winners_and_end_client_connection, args=(c_connection, client_winners))
+                send_winners_process.start()
+                end_processes.append(send_winners_process)
 
-        bets = load_bets()
-        winners = [bet for bet in bets if has_won(bet)]
-        logging.info(f'action: process_winners | result: success | total_winners: {len(winners)}')
-        end_processes = []
-
-        for client_id, c_connection in finished_clients:
-            client_winners = [winner.number for winner in winners if winner.agency == client_id]
-            send_winners_process = multiprocessing.Process(target=self.__send_winners_and_end_client_connection, args=(c_connection, client_winners))
-            send_winners_process.start()
-            end_processes.append(send_winners_process)
-
-        for process in end_processes:
-            process.join()
+            for process in end_processes:
+                process.join()
 
     def __exit_gracefully(self):
         def sigterm_handler(sig, frame):
@@ -56,6 +57,7 @@ class Server:
             for active_connection in self.active_connections:
                 active_connection.close()
                 logging.info(f'action: close | result: success | resource type: client socket | ip: {active_connection.getpeername()[0]}')
+            self._process_manager.shutdown()
             quit()
         return sigterm_handler
 
