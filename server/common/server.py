@@ -23,7 +23,7 @@ class Server:
         finishes, servers starts to accept new connections again
         """
 
-        signal.signal(signal.SIGTERM, self.__exit_gracefully())
+        signal.signal(signal.SIGTERM, self.__exit_gracefully)
         while True:
             self.active_connection = self.__accept_new_connection()
             self.__handle_client_connection()

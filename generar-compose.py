@@ -18,8 +18,10 @@ SERVER_BASE_CONFIG = {
     "image": "server:latest",
     "entrypoint": "python3 /main.py",
     "networks": ["testing_net"],
-    "volumes": ["./server/config.ini:/config/config.ini"]
+    "volumes": ["./server/config.ini:/config/config.ini"],
+    "environment": {}
   }
+
 CLIENT_BASE_CONFIG = {
     "container_name": "client",
     "image": "client:latest",
@@ -29,21 +31,6 @@ CLIENT_BASE_CONFIG = {
     "volumes": ["./client/config.yaml:/config/config.yaml"],
     "environment": {}
 }
-
-
-SERVER_CHECKER_CONFIG = {
-    "container_name": "server-checker",
-    "image": "busybox",
-    "networks": ['testing_net'],
-    "command": "tail -f /dev/null" 
-  }
-
-if ADD_CONFIG_ENV_VARS:
-  SERVER_BASE_CONFIG["environment"] = {
-      "PYTHONUNBUFFERED": "1",
-      "LOGGING_LEVEL": "DEBUG"
-  }
-  CLIENT_BASE_CONFIG["environment"]["CLI_LOG_LEVEL"] = "DEBUG"
 def generate_docker_compose(filename, client_amount):
   """
   Generates a Docker Compose file with specified filename and client count.
@@ -58,9 +45,17 @@ def generate_docker_compose(filename, client_amount):
   if not isinstance(client_amount, int) or client_amount < 0:
     raise ValueError("client_amount must be a positive integer")
 
+  if ADD_CONFIG_ENV_VARS:
+    SERVER_BASE_CONFIG["environment"] = {
+        "PYTHONUNBUFFERED": "1",
+        "LOGGING_LEVEL": "DEBUG"
+    }
+    CLIENT_BASE_CONFIG["environment"]["CLI_LOG_LEVEL"] = "DEBUG"
 
-  client_config = CLIENT_BASE_CONFIG
+  SERVER_BASE_CONFIG["environment"]["CLIENT_AMOUNT"] = client_amount
+
   # Create the Docker Compose file content
+  client_config = CLIENT_BASE_CONFIG
   content = "name: tp0\n"
   content += "services:\n"
   content += f"  server:\n"
@@ -70,7 +65,12 @@ def generate_docker_compose(filename, client_amount):
     client_config["container_name"] = f"client{i}"
     
     client_config["environment"]["CLI_ID"] = str(i)
+<<<<<<< HEAD
 
+=======
+    volume_list = [CLIENT_BASE_CONFIG["volumes"][0], f"./.data/agency-{i}.csv:/bets.csv"]
+    client_config["volumes"] = volume_list
+>>>>>>> ej4
     if ADD_BET_ENV_VARS:
       client_config["environment"][f"{ENV_PREFIX}FIRST_NAME"] = BET_OPTIONS["first_names"][(i-1)%5]
       client_config["environment"][f"{ENV_PREFIX}LAST_NAME"] = BET_OPTIONS["last_names"][(i-1)%5]
@@ -81,9 +81,6 @@ def generate_docker_compose(filename, client_amount):
     content += f"  client{i}:\n"
     content += f"{yaml_format(client_config)}\n"
     client_config["container_name"] = "client"  # Reset client container name
-  
-  content += f"  server-checker:\n"
-  content += f"{yaml_format(SERVER_CHECKER_CONFIG)}\n"
 
   content += "networks:\n"
   content += "  testing_net:\n"
