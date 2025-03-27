@@ -50,7 +50,7 @@ class Server:
             for process in end_processes:
                 process.join()
 
-    def __exit_gracefully(self):
+    def __exit_gracefully(self, sig, frame):
         def sigterm_handler(sig, frame):
             self._server_socket.close()
             logging.info(f'action: close | result: success | resource type: server socket')
