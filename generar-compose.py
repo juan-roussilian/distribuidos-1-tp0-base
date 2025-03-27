@@ -65,12 +65,6 @@ def generate_docker_compose(filename, client_amount):
     client_config["container_name"] = f"client{i}"
     
     client_config["environment"]["CLI_ID"] = str(i)
-<<<<<<< HEAD
-
-=======
-    volume_list = [CLIENT_BASE_CONFIG["volumes"][0], f"./.data/agency-{i}.csv:/bets.csv"]
-    client_config["volumes"] = volume_list
->>>>>>> ej4
     if ADD_BET_ENV_VARS:
       client_config["environment"][f"{ENV_PREFIX}FIRST_NAME"] = BET_OPTIONS["first_names"][(i-1)%5]
       client_config["environment"][f"{ENV_PREFIX}LAST_NAME"] = BET_OPTIONS["last_names"][(i-1)%5]

@@ -23,7 +23,7 @@ services:
     entrypoint: /client
     networks: ['testing_net']
     depends_on: ['server']
-    volumes: ['./client/config.yaml:/config/config.yaml', './.data/agency-2.csv:/bets.csv']
+    volumes: ['./client/config.yaml:/config/config.yaml']
     environment: {'CLI_ID': '2', 'CLI_FIRST_NAME': 'Mark V.', 'CLI_LAST_NAME': 'Grayson', 'CLI_DOCUMENT': '23000000', 'CLI_BIRTH_DATE': '1967-12-12', 'CLI_NUMBER': '8'}
 
 networks:
