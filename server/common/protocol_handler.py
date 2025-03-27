@@ -48,7 +48,7 @@ class ProtocolHandler:
                     logging.info(f'action: apuesta_recibida | result: success | cantidad: {bet_amount}')
                 except Exception as e:
                     logging.error(f'Failed to store bets: {e}')
-                    self.messenger.send_error_message(self.connection)  # Notify failure
+                    self.messenger.send_error_message(self.connection)
 
             elif opcode == END_OF_BATCH_MESSAGE_OPCODE:
                 logging.info(f'action: fin_lote | result: success | agencia: {agency_number}')

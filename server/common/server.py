@@ -14,43 +14,40 @@ class Server:
         self._server_socket.bind(('', port))
         self._server_socket.listen(listen_backlog)
         self._client_amount = client_amount
-        self._finished_clients = []
         self.active_connections = []
 
     def run(self):
         signal.signal(signal.SIGTERM, self.__exit_gracefully)
 
-        manager = multiprocessing.Manager()
-        finished_clients = manager.list()
+        finished_clients = multiprocessing.Manager().list()
         store_lock = multiprocessing.Lock()
 
         processes = []
 
-        while len(finished_clients) < self._client_amount:
+        for _ in range(self._client_amount):
             connection = self.__accept_new_connection()
-            logging.info(f"just accepted new client {connection}")
             self.active_connections.append(connection)
 
-            p = multiprocessing.Process(target=self.__handle_client_connection, args=(connection, finished_clients, store_lock))
-            p.start()
-            processes.append(p)
-
-        for p in processes:
-            p.join()
+            bet_transfer_process = multiprocessing.Process(target=self.__handle_client_connection, args=(connection, finished_clients, store_lock))
+            bet_transfer_process.start()
+            processes.append(bet_transfer_process)
+        
+        for process in processes:
+            process.join(timeout=10)
 
         bets = load_bets()
         winners = [bet for bet in bets if has_won(bet)]
-
+        logging.info(f'action: process_winners | result: success | total_winners: {len(winners)}')
         end_processes = []
 
         for client_id, c_connection in finished_clients:
             client_winners = [winner.number for winner in winners if winner.agency == client_id]
-            p = multiprocessing.Process(target=self.__send_winners_and_end_client_connection, args=(c_connection, client_winners))
-            p.start()
-            end_processes.append(p)
+            send_winners_process = multiprocessing.Process(target=self.__send_winners_and_end_client_connection, args=(c_connection, client_winners))
+            send_winners_process.start()
+            end_processes.append(send_winners_process)
 
-        for p in end_processes:
-            p.join()
+        for process in end_processes:
+            process.join()
 
     def __exit_gracefully(self):
         def sigterm_handler(sig, frame):
@@ -72,8 +69,7 @@ class Server:
         try:
             protocol_handler = ProtocolHandler(connection)
             client_id = protocol_handler.receive_and_store_bets(store_lock)
-            finished_clients.append((client_id, connection))
-            return
+            finished_clients.append((client_id, connection))            
     
         except OSError as e:
            logging.error(f"action: receive_message | result: fail | error: {e}")
