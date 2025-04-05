@@ -16,11 +16,12 @@ class Server:
         self._client_amount = client_amount
         self.active_connections = []
         self._process_manager = None
+        self._running = True
 
     def run(self):
         signal.signal(signal.SIGTERM, self.__exit_gracefully)
         self._process_manager = multiprocessing.Manager()
-        while True:
+        while self._running:
             finished_clients = self._process_manager.list()
             store_lock = multiprocessing.Lock()
             processes = []
@@ -51,16 +52,25 @@ class Server:
                 process.join()
 
     def __exit_gracefully(self, sig, frame):
-        def sigterm_handler(sig, frame):
-            self._server_socket.close()
-            logging.info(f'action: close | result: success | resource type: server socket')
-            for active_connection in self.active_connections:
+        logging.info("action: shutdown | result: in_progress")
+        self._server_socket.close()
+        logging.info("action: close | result: success | resource type: server socket")
+
+        for active_connection in self.active_connections:
+            try:
                 active_connection.close()
-                logging.info(f'action: close | result: success | resource type: client socket | ip: {active_connection.getpeername()[0]}')
-            if self._process_manager is not None:
-                self._process_manager.shutdown()
-            quit()
-        return sigterm_handler
+                logging.info(f"action: close | result: success | resource type: client socket | ip: {active_connection.getpeername()[0]}")
+            except Exception as e:
+                logging.error(f"action: close | result: fail | error: {e}")
+
+        if self._process_manager is not None:
+            self._process_manager.shutdown()
+            logging.info("action: shutdown | result: success | resource type: process manager")
+
+        logging.info("action: shutdown | result: success")
+        # Set a flag or use a mechanism to stop the server loop
+        self._running = False
+        
 
     def __handle_client_connection(self, connection, finished_clients, store_lock):
         """
