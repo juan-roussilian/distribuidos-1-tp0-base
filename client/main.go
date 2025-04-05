@@ -132,12 +132,8 @@ func main() {
 		LoopAmount:    v.GetInt("loop.amount"),
 		LoopPeriod:    v.GetDuration("loop.period"),
 	}
-
-	bets, err := common.ParseBetsFromCSV("./bets.csv")
-	if err != nil {
-		log.Criticalf("%s", err)
-	}
+	betsFilePath := "./bets.csv"
 	client := common.NewClient(clientConfig)
-	client.StartClientLoop(bets, v.GetInt("batch.maxAmount"))
+	client.StartClientLoop(betsFilePath, v.GetInt("batch.maxAmount"))
 	time.Sleep(1 * time.Second)
 }

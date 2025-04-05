@@ -56,7 +56,7 @@ func (c *Client) createClientSocket() error {
 }
 
 // StartClientLoop Send messages to the client until some time threshold is met
-func (c *Client) StartClientLoop(bets []Bet, maxAmount int) {
+func (c *Client) StartClientLoop(betsFilePath string, maxAmount int) {
 
 	c.createClientSocket()
 	sigc := make(chan os.Signal, 1)
@@ -78,6 +78,6 @@ func (c *Client) StartClientLoop(bets []Bet, maxAmount int) {
 	}
 	configID, _ := strconv.Atoi(c.config.ID)
 	p := NewProtocolHandler(c.conn, uint16(configID))
-	p.RunProtocol(bets, maxAmount)
+	p.RunProtocol(betsFilePath, maxAmount)
 	c.conn.Close()
 }

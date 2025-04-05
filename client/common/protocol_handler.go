@@ -23,9 +23,9 @@ func NewProtocolHandler(conn net.Conn, clientID uint16) *ProtocolHandler {
 	}
 }
 
-func (p *ProtocolHandler) RunProtocol(bets []Bet, maxAmount int) {
+func (p *ProtocolHandler) RunProtocol(betsFilePath string, maxAmount int) {
 	// Flow control for the entire protocol
-	p.SplitAndSendBets(bets, maxAmount)
+	p.SplitAndSendBets(betsFilePath, maxAmount)
 	p.SendEndOfBets()
 	winners, err := p.AskForWinners()
 	if err != nil {
@@ -36,18 +36,23 @@ func (p *ProtocolHandler) RunProtocol(bets []Bet, maxAmount int) {
 	log.Infof("action: loop_finished | result: success | client_id: %v", p.clientID)
 }
 
-func (p *ProtocolHandler) SplitAndSendBets(bets []Bet, maxAmount int) {
+func (p *ProtocolHandler) SplitAndSendBets(betsFilePath string, maxAmount int) {
 	// Split bets into batches and send them while handling server response
-	for i := 0; i < len(bets); i += maxAmount {
-		end := i + maxAmount
-		if end > len(bets) {
-			end = len(bets)
+	readBets := 0
+	for i := 0; ; i += readBets {
+		bets, err := ParseBetsFromCSV(betsFilePath, uint(i), uint(maxAmount))
+		readBets = len(bets)
+		if err != nil {
+			log.Errorf("action: read_bet | result: fail | client_id: %v | error: %v", p.clientID, err.Error())
+			break
 		}
-		currentBets := bets[i:end]
+		if readBets == 0 {
+			break
+		}
 		batchNumber := i/maxAmount + 1
 
 		// Send bets and handle responses
-		p.SendBets(currentBets, batchNumber)
+		p.SendBets(bets, batchNumber)
 		responseOpcode, rec_bet_err := p.messenger.ReceiveResult(p.connection, p.clientID)
 
 		if rec_bet_err != nil {

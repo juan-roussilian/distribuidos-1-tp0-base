@@ -3,12 +3,13 @@ package common
 import (
 	"encoding/csv"
 	"fmt"
+	"io"
 	"os"
 	"strconv"
 	"strings"
 )
 
-func ParseBetsFromCSV(filePath string) ([]Bet, error) {
+func ParseBetsFromCSV(filePath string, startRow uint, numRows uint) ([]Bet, error) {
 
 	file, err := os.Open(filePath)
 	if err != nil {
@@ -19,33 +20,56 @@ func ParseBetsFromCSV(filePath string) ([]Bet, error) {
 	reader := csv.NewReader(file)
 	reader.Comma = ','
 
-	rows, err := reader.ReadAll()
-	if err != nil {
-		return nil, fmt.Errorf("failed to read CSV: %w", err)
-	}
-
 	var bets []Bet
-	for i, row := range rows {
-
-		document, err := strconv.Atoi(strings.TrimSpace(row[2]))
+	var currentRow uint = 0
+	for {
+		row, err := reader.Read()
 		if err != nil {
-			return nil, fmt.Errorf("invalid document at line %d: %v", i+1, err)
+			if err == io.EOF {
+				break
+			}
+			return nil, fmt.Errorf("failed to read CSV: %w", err)
 		}
 
-		betNumber, err := strconv.Atoi(strings.TrimSpace(row[4]))
-		if err != nil {
-			return nil, fmt.Errorf("invalid bet number at line %d: %v", i+1, err)
+		if currentRow < startRow {
+			currentRow++
+			continue
 		}
 
-		bet := Bet{
-			FirstName: strings.TrimSpace(row[0]),
-			LastName:  strings.TrimSpace(row[1]),
-			Document:  uint32(document),
-			BirthDate: strings.TrimSpace(row[3]),
-			Number:    uint16(betNumber),
+		if currentRow >= startRow+numRows {
+			break
+		}
+
+		bet, err := parseBet(row, currentRow+1)
+		if err != nil {
+			return nil, err
 		}
 		bets = append(bets, bet)
+
+		currentRow++
 	}
 
 	return bets, nil
+}
+
+func parseBet(row []string, lineNumber uint) (Bet, error) {
+	document, err := strconv.Atoi(strings.TrimSpace(row[2]))
+	if err != nil {
+		return Bet{}, fmt.Errorf("invalid document at line %d: %v", lineNumber, err)
+	}
+
+	betNumber, err := strconv.Atoi(strings.TrimSpace(row[4]))
+	if err != nil {
+		return Bet{}, fmt.Errorf("invalid bet number at line %d: %v", lineNumber, err)
+	}
+
+	bet := Bet{
+		FirstName: strings.TrimSpace(row[0]),
+		LastName:  strings.TrimSpace(row[1]),
+		Document:  uint32(document),
+		BirthDate: strings.TrimSpace(row[3]),
+		Number:    uint16(betNumber),
+	}
+
+	return bet, nil
 }
