@@ -34,7 +34,7 @@ class Server:
                 processes.append(bet_transfer_process)
             
             for process in processes:
-                process.join(timeout=10)
+                process.join()
 
             bets = load_bets()
             winners = [bet for bet in bets if has_won(bet)]
