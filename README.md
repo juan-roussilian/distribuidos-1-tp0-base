@@ -72,6 +72,10 @@ make docker-compose-logs
 
 Para ver la interacion de los mensajes de apuestas del cliente con el servidor con los nuevos valores definidos
 
+### Layers y paquetes
+
+![image info](./diagramas/paquetes.png)
+
 ### Protocolo 
 Se definieron los siguientes mensajes a enviar por el cliente y el servidor en un protocolo binario mixto, en el cual hay parametros fijos, en su mayoría los valores numéricos, y parametros variables que deben a su vez ir acompañados de un numero representando su longitud en bytes. Finalmente el tamaño de paquete de apuesta debe ser fijo ya que no se implementa un parametro de tamaño total de paquete y ademas no se considera que sea necesario porque los campos dinamicos correspondiente al nombre y apellido de quien realizo la apuesta no deberian utilizar mas de los bytes que tienen disponibles. 
 
@@ -153,6 +157,7 @@ Las secciones criticas donde puedes ocurrir una race condition son:
 - Al momento de almacenar apuestas, y es por eso que se implementa un lock multi proceso que se debe adquirir antes de poder persistir la apuesta
 - Al momento de sumar un proceso a la lista de procesos terminados, la cual es compartida entre procesos. Para solucionar esto se utilizo una lista de la libreria multiprocessing la cual internamente implementa el mecanismo de sincronización entre procesos. Se opto por esta solución en lugar de utilizar otro lock multiproceso ya que resulta técnicamente mas interesante y agrega variedad a los mecanismos de sincronización empleados.
 
+![image info](./diagramas/procesos.png)
 
 # Puntos de mejora
 
