@@ -27,7 +27,11 @@ class Server:
             processes = []
 
             for _ in range(self._client_amount):
-                connection = self.__accept_new_connection()
+                try: 
+                    connection = self.__accept_new_connection()
+                except OSError:
+                    logging.error("action: accept_connections | result: fail | error: server socket has been closed")
+                    return
                 self.active_connections.append(connection)
 
                 bet_transfer_process = multiprocessing.Process(target=self.__handle_client_connection, args=(connection, finished_clients, store_lock))
@@ -52,6 +56,7 @@ class Server:
                 process.join()
 
     def __exit_gracefully(self, sig, frame):
+        self._running = False
         logging.info("action: shutdown | result: in_progress")
         self._server_socket.close()
         logging.info("action: close | result: success | resource type: server socket")
@@ -68,8 +73,7 @@ class Server:
             logging.info("action: shutdown | result: success | resource type: process manager")
 
         logging.info("action: shutdown | result: success")
-        # Set a flag or use a mechanism to stop the server loop
-        self._running = False
+        
         
 
     def __handle_client_connection(self, connection, finished_clients, store_lock):
